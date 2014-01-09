@@ -1,0 +1,7 @@
+======mathjax======
+
+$$ a = 5 $$
+
+ted zkusime inline: $ a = 5 $, ale mozna je default backslash a (zavorky): \( a = \sqrt{2} \)
+
+Klasicka kvadraticka rovnice: \( x = {-b \pm \sqrt{b^2-4ac} \over 2a} \)

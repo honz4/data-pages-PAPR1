@@ -1,0 +1,2609 @@
+======= Lekce 2 Vytváření abstrakcí pomocí procedur =======
+
+Obsah lekce: V této lekci se seznámíme s uživatelsky definovatelnými procedurami a s vytvářením abstrakcí pomocínich.
+Nejprve řekneme motivaci pro zavedení takových procedur a ukážeme několik příkladů.
+
+Zavedeme λ-výrazy jako výrazy jejichž vyhodnocováním procedury vznikají.
+Dále rozšíříme současný model prostředí. Uvedeme, jak lze chápat vyhodnocování elementů relativně vzhledem k prostředí.
+Dále ukážeme, jak jsou reprezentovány uživatelsky definovatelné procedury, jak vznikají a jak probíhá jejich aplikace.
+Ukážeme několik typických příkladů procedur a naši pozornost zaměříme na procedury vyšších řádů.
+Posléze poukážeme na vztah procedur a zobrazení (matematických funkcí).
+Nakonec ukážeme dva typy rozsahů platnoti symbolů a představíme některénové speciální formy.
+
+Klíčová slova: aktuální prostředí, currying, disjunkce, dynamicky nadřazené prostředí,
+dynamický rozsah platnosti, elementy prvního řádu, formální argumenty, globální prostředí,
+identita, konjunkce, konstantní procedura, λ-výraz,
+lexikálně nadřazené prostředí, lexikální (statický) rozsah platnosti,
+lokální prostředí, negace, parametry, procedura vyššího řádu, projekce,
+předek prostředí, tělo procedury, uživatelsky definovatelná procedura, volné symboly, vázané symboly.
+
+{{anchor:s2_1}}
+======= 2.1 Uživatelsky definovatelné procedury a λ-výrazy =======
+
+V [[L1#s1_6|sekci 1.6]] jsem popsali vytváření abstrakcí pomocí pojmenování hodnot.
+Stručně řečeno šlo o to, že místo po-užívání konkrétních hodnot v programu
+jsme hodnotu pojmenovali pomocísymbolu zastupujícího „jméno hodnoty“ a v programu jsme dále používali tento symbol.
+Nyní pokročíme o krok dále a ukážeme daleko významnějšízpůsob vytváření abstrakcí,
+který je založenýna vytvářenínových procedur.
+
+V minulé lekci jsme představili celou řadu primitivních procedur,
+to jest procedur, které byly na počátku vyhodnocování (po spuštění interpretu)
+navázány na některé symboly (jako třeba +, modulo a podobně) v počátečním prostředí.
+Při vytváření programů se často dostáváme do situace, že potřebujeme provádět podobné „operace“ (sekvence aplikací primitivních procedur), které se v programu projevují „podobnými kusy kódu“.
+V programu tedy dochází k jaké si redundanci (nadbytečnosti) kódu.
+Tato redundance by mohla být potenciálním zdrojem chyb, kdybychom byli nuceni tutéž sekvenci kódu měnit na všech místech programu (třeba vlivem přidánínového parametru úlohy).
+Snadno bychom na některou část kódu mohli zapomenout a chyba by byla na světe.
+Nabízíse tedy vytvořit novou proceduru,
+potom ji pojmenovat (což již umíme), a dále s ní pracovat, to jest aplikovat ji,
+jako by se jednalo o primitivní proceduru.
+Jedná se nám tedy o problém uživatelského vytváření procedur
+(pod pojmem „uživatel“ budeme mít na mysli uživatele jazyku Scheme, tedy programátora).
+Nový typ procedur, o kterém budeme hovořit v této lekci, budeme tedy nazývat uživatelsky definovatelné procedury.
+Stejně jako u primitivních procedur budeme i uživatelsky definovatelné procedury považovat za elementy jazyka Scheme.
+
+Primitivní procedury i uživatelsky definovatelné procedury budeme dále označovat jedním souhrnným názvem procedury.
+Procedura je tedy obecné označení pro element jazyka zahrnující v sobě jednak procedury,
+které jsou k dispozici na začátku práce s interpretem (to jest primitivní procedury) a na druhé straně procedury,
+které lze dynamicky vytvářet během vyhodnocování programů a dále je v nich používat (to jest uživatelsky definovatelné procedury).
+
+Uživatelsky definovatelné procedury nyní popíšeme od jejich syntaxe po jejich sémantiku.
+V této sekci uvedeme pouze základy, motivační příklady a to, jak se na procedury dívat z pohledu programátora.
+
+V dalších sekcích této lekce se budeme zabývat tím, jak procedury vznikají a jak probíhá jejich aplikace z pohledu abstraktního interpretu jazyka Scheme. Nejprve uvedeme ilustrativní příklad.
+
+Představme si situaci, že v programu často počítáme hodnoty druhých mocnin nějakých čísel.
+Přirozeně bychom mohli výpočet druhé mocniny zajistit výrazy tvaru (* výraz výraz ),
+které bychom uváděli na každém místě v programu, kde bychom druhou mocninu chtěli počítat.
+Toto řešení má mnoho nevýhod.
+
+{{anchor:str42}}
+Jednak je to již dříve uvedená redundance kódu, jednak výraz bude při vyhodnocovánícelého výrazu
+''(* výraz výraz )'' vyhodnocován dvakrát.
+Nabízelo by se tedy „zhmotnit“ novou proceduru jednoho argumentu „vypočti druhou mocninu“
+a potom ji pomocí define navázat na dosud nepoužitýsymbol, třeba na2 (jako „na druhou“).
+Pokud by se to podařilo, mohli bychom tuto novu proceduru aplikovat jako by byla primitivní,
+to jest ve tvaru ''(na2 výraz )''.
+
+Nové procedury budeme v interpretu vytvářet vyhodnocováním λ-výrazů.
+Například proceduru „umocni danou hodnotu na druhou“ bychom vytvořili vyhodnocením následujícího λ-výrazu:
+<code scheme>
+(lambda (x) (* x x)) ;⇒ „procedura, která pro dané x vracín ásobek x s x“</code>
+
+V předchozím výrazu je lambda symbol, na který je v počátečním prostředínavázána speciální forma vytvářející procedury,
+jak si podrobně rozebereme dále (zatím se na tuto speciální formu můžeme dívat jako na černou skříňku).
+Za tímto symbolem následuje jednoprvkovýseznam (x), jehož jediným prvkem je symbol x,
+kterým formálně označujeme hodnotu předávanou proceduře.
+Posledním prvkem předchozího λ-výrazu je seznam (* x x), což je tělo procedury udávající,
+co se při aplikaci procedury s hodnotou navázanou na symbol x bude dít.
+V našem případě bude hodnota vynásobena sama se sebou
+a výsledek této aplikace bude i výsledkem aplikace našínové procedury.
+Proceduru bychom mohli použít například takto:
+<code scheme>
+((lambda (x) (* x x)) 8) ;⇒ 64</code>
+
+Předchozí použití je z hlediska vyhodnocovacího proceduru zcela v pořádku.
+Uvědomte si, že symbolický výraz (lambda (x) (* x x)), což je první prvek celého seznamu,
+se (jak jsme uvedli) vyhodnotína proceduru.
+V dalším kroku se číslo 8 vyhodnotína sebe sama a poté dojde k aplikaci nově vzniklé procedury s hodnotou 8.
+Všimněte si, že v tomto případě se jednalo vlastně o jakousi „jednorázovou aplikaci“ procedury,
+protože nová procedura vznikla, byla jednou aplikována (s argumentem 8
+a další aplikaci téže procedury již nemůžeme prové st, protože jsme ji „ztratili“.
+Pro vysvětlenou, kdybychom dále napsali ''((lambda (x) (* x x)) 10) ;⇒ 100'',
+pak by byla opět (vyhodnocením λ-výrazu) vytvořena nová procedura „umocni na druhou,
+pouze jednou aplikována a poté opět „ztracena“.
+Abychom tutéž proceduru (to jest proceduru vzniklou vyhodnocením jediného λ-výrazu na konkrétním místě v programu)
+mohli vícekrát aplikovat, musíme jí bezprostředně po jejím vytvoření pojmenovat (v dalších sekcích uvidíme,
+že to lze udělat i bez pojmenování), například:
+<code scheme>
+(define na2 (lambda (x) (* x x)))</code>
+
+Při vyhodnocování předchozího výrazu je aktivována speciální forma define,
+kterána symbol na2 naváže hodnotu vzniklou vyhodnocením druhého argumentu.
+Tím je v našem případě λ-výraz, kterýse vyhodnotína proceduru, takže po vyhodnocení předchozího výrazu
+bude skutečně na na2 navázána nově vytvořená procedura „umocni hodnotu na druhou“.
+Nyní můžeme proceduru používat, jako by byla primitivní:
+<code scheme>
+(na2 2) ;⇒ 4
+(+ 1 (na2 4)) ;⇒ 17
+(na2 (na2 8)) ;⇒ 4096</code>
+
+Sice jsme ještě přesně nepopsali vznik ani detaily aplikace uživatelsky definovatelných procedur,
+ale základní princip jejich vytváření a používání by již měl být každému zřejmý.
+
+V čem tedy spočívá vytváření abstrakcí pomocí procedur?
+Spočívá v tom, že konkrétníčásti kódu nahrazu-jeme aplikací abstraktnějších procedur.
+Například (* 3 3 3) a (* 5 5 5) bychom mohli nahradit výrazy (na3 3)
+a (na3 5) způsobujícími aplikaci procedury „umocni na třetí“ navázanéna symbol na3.
+Při úpravě kódu se pak můžeme soustředit pouze na samotnou proceduru a nemusíme se zabývat,
+kde všude v programu je používána.
+
+{{anchor:str43}}
+Nyní přesně popíšeme, jak vypadají λ-výrazy.
+
+Definice 2.1 (λ-výraz). Každýseznam ve tvaru
+
+(lambda ( param1 param2 ··· paramn ) tělo ),
+
+kde n je nezáporné číslo, //param1//, //param2//, ... , //paramn// jsou vzájemně různé symboly
+a //tělo// je libovolnýsymbolický výraz, se nazývá λ-výraz (lambda výraz).cl
+Symboly param1 , ... , paramn se nazývají formální argumenty (někdy teéž parametry).
+Číslo n nazýváme počet formálních argumentů (parametrů).
+
+Poznámka 2.2. (a) Zřejmě každý λ-výraz je symbolický výraz, protože je to seznam (ve speciálně vyžadovaném tvaru).
+Příklady λ-výrazů jsou třeba:
+<code scheme>
+(lambda (x) (* 2 x))
+(lambda (x y) (+ (* 2 x) y))
+(</code>lambda (x y dalsi) (+ x dalsi))
+a tak podobně. Všimněte si, že definice 2.1 připouští i nulový počet formálních argumentů.
+Takže například (lambda () 10) je rovněž λ-výraz.
+Respektive jednáse o λ-výraz (tedy o symbolický výraz) za předpokladu,
+že v definici 1.6 na straně 19 připustíme i „prázdné seznamy“, to jest seznamy (),
+což budeme od tohoto okamžiku tiše předpokládat.
+
+(b) Účelem formálních argumentů je „pojmenovat hodnoty“ se kterými bude procedura aplikována.
+Proceduru můžeme aplikovat s různými argumenty, proto je potřeba argumenty při definici procedury zastou-pit symboly,
+aby byly pokryty „všechny možnosti aplikace procedury“.
+Tělo procedury představuje vlastní předpis procedury – neformálně řečeno,
+tělo vyjadřuje „co bude procedura s danými argumenty provádět“.
+
+(c) Pojem „λ-výraz“ je přebrán z formálního kalkulu zvaného λ-kalkul,
+který vyvinul v 30. letech 20. století americký matematik Alonzo Church [Ch36, Ch41].
+
+Zopakujme, že uvedením λ-výrazu v programu je z pohledu vyhodnocovacího procesu
+(tak jak jsme jej uvedli v definici 1.25 na straně 1.25) provedena aplikace speciální formy navázanéna symbol lambda.
+
+Samotná procedura je vytvořenáspeciální formou lambda (záhy popíšeme jak).
+Je ovšem zřejmé, že element navázanýna lambda musí být skutečně speciální forma, nikoliv procedura.
+Kdyby totiž na lambda byla navázána procedura, pak by vyhodnocení následujícího výrazu
+
+<code scheme>
+(lambda (x) (* x x))</code>
+
+končilo chybou v kroku (B.e), protože symbol x by nemá vazbu (rozeberte si podrobně sami).
+
+Je vhodné dobře si uvědomovat, jaký je rozdíl mezi λ-výrazy a procedurami vzniklými jejich vyhodnocováním.
+Předně, λ-výrazy jsou seznamy, tedy symbolické výrazy, což nejsou procedury.
+λ-výrazy uvedené v programech bychom měli chápat jako předpisy pro vznik procedur,
+nelze je ale ztotožňovat s procedurami samotnými.
+
+Nyníneformálně vysvětlíme princip aplikace uživatelských procedur, který dále zpřesníme v dalších sekcích.
+Nejprve řekněme, že z pohledu symbolů vyskytujících se v těle konkrétního λ-výrazu je můžeme rozdělit na dvě skupiny.
+Prvnískupinou jsou symboly, které jsou formálními argumenty daného λ-výrazu.
+
+Takovým symbolům budeme říkat vázané symboly. Druhou skupinou jsou symboly, které se nacházejí
+v těle λ-výrazu, ale nejednáse o formální argumenty.
+Takovým symbolům budeme říkat volné symboly.
+
+Demonstrujme si blíže oba pojmy na následujícím výrazu:
+<code scheme>
+(lambda (x y nepouzity) (* (+ 1 x) y))</code>
+
+V těle tohoto výrazu se nacházejícelkem čtyři symboly: +, *, x a y.
+Symboly x a y jsou vázané, protože jsou to formální argumenty, to jest jsou to prvky seznamu (x y z).
+Naproti tomu symboly + a * jsou volné, protože se v seznamu formálních argumentů nevyskytují.
+Formální argument nepouzity se nevyskytuje v těle, takže jej neuvažujeme.
+
+Pomocí volných a vázaných symbolů v λ-výrazech můžeme nynízjednodušeně popsat aplikaci procedur.
+
+Definice 2.3 (zjednodušený model aplikace uživatelsky definovatelných procedur).
+Při aplikaci procedury vzniklé vyhodnocením λ-výrazu ''(lambda ( param1 param2 ··· paramn ) tělo )''
+dojde k vytvoření lo-kálního prostředí, ve kterém jsou na symboly formálních argumentů param1 , ... , paramn
+navázané hodnoty, se kterými byla procedura aplikována.
+Při aplikaci musí být proceduře předán stejný počet hodnot jako je počet formálních argumentů procedury.
+V takto vytvořeném lokálním prostředí je vyhodnoceno tělo procedury.
+Při vyhodnocování těla procedury se vazby vázaných symbolů hledají v lokálním prostředí
+a vazby volných symbolů se hledají v počátečním prostředí.
+Výsledkem aplikace procedury je hodnota vzniklá jako výsledek vyhodnocení jejího těla.
+
+{{anchor:str44}}
+
+
+
+Zdůrazněme ještě jednou, že proces aplikace popsaný v definici 2.3 je pouze zjednodušeným modelem.
+
+V dalších sekcích uvidíme, že s takto probíhající aplikací bychom si nevystačili.
+Pro zdůvodnění výsledků aplikace uživatelsky definovatelných procedur nám to v této sekci zatím postačí.
+
+Poznámka 2.4. (a) Definice 2.3 říká,
+že hodnotou aplikace procedury s danými argumenty je hodnota vyhodnocení jejího těla, za předpokladu,
+že formální argumenty budou navázány na skutečné hodnoty použité při aplikaci.
+Otázkou je, proč potřebujeme rozlišovat dvě prostředí – lokální a globální.
+Je to z toho důvodu, že nechceme směšovat formální argumenty procedur se symboly v počátečním prostředí,
+protože majıódlišnou roli.
+Vázané symboly v těle procedur zastupují argumenty předané proceduře.
+Volné symboly v těle procedur zastupují elementy (čísla, procedury, speciální formy, ... ),
+které jsou definované mimo lokální prostředí (v našem zjednodušeném modelu je to prostředí počáteční).
+
+(b) Jelikož jsme zjistili, že abstraktní interpret jazyka Scheme pouze s jedním (počátečním) prostředím je dále neudržitelný, budeme se v další sekci zabývat tím, jak prostředí vypadají a následně upravíme vyhodnocovací proces.
+
+Ve zbytku sekce ukážeme další příklady uživatelsky definovatelných procedur.
+Za předpokladu, že na symbolu na2 máme navázanou proceduru pro výpočet druhé mocniny (viz předchozí text),
+pak můžeme dále definovat odvozené procedury pro výpočet dalších mocnin:
+<code scheme>
+(define na3 (lambda (x) (* x (na2 x))))
+
+(define na4 (lambda (x) (na2 (na2 x))))
+
+(define na5 (lambda (x) (* (na2 x) (na3 x))))
+
+(define na6 (lambda (x) (na2 (na3 x))))
+
+(define na7 (lambda (x) (* (na3 x) (na4 x))))
+
+(define na8 (lambda (x) (na2 (na4 x))))
+...</code>
+
+Pomocí procedur pro výpočet druhé mocniny a druhé odmocniny (primitivní procedura navázanána sqrt)
+můžeme napsat proceduru pro výpočet velikosti přepony v pravoúhlém trojúhelníku.
+Bude se jedna o proceduru dvou argumentů, jimiž jsou velikosti přepon
+a která bude provádět výpočet podle známého vzorce \(c = \sqrt{a^2 + b^2}\):
+
+<code scheme>
+(define prepona
+
+(lambda (odvesna-a odvesna-b)
+
+(sqrt (+ (na2 odvesna-a) (na2 odvesna-b)))))
+
+Příklad použití procedury:
+
+(prepona 3 4) ;⇒ 5
+
+(+ 1 (prepona 3 4)) ;⇒ 6
+
+(prepona 30 40) ;⇒ 50</code>
+
+Dále bychom mohli vytvořit další proceduru používající právě vytvořenou proceduru na výpočet velikosti přepony.
+Třeba následující procedura počítá velikost přeponu pravoúhlých trojúhelníků,
+jejichž delšıód-věsna je stejně dlouhá jako dvojnásobek kratšıódvěsny.
+Je zřejmé, že této proceduře bude stačit předávat pouze jedinýargument – délku kratšıódvěsny,
+protože delší odvěsnu si můžeme vypočítat:
+<code scheme>
+(define dalsi-procedura
+(lambda (x)
+(prepona x (* 2 x))))</code>
+
+Doposud jsme ukazovali procedury, které ve svém těle provedly pouze jednoduchýaritmetický výpočet.
+
+Procedury mívajıóbvykle daleko složitější těla, ve kterých se často vyskytují podmíněné výrazy.
+Nynísi ukážeme, jak nadefinovat například proceduru pro výpočet absolutní hodnoty ré alného čísla.
+Z matematiky víme, že absolutní hodnota |x| čísla x je číslo danénásledujícím vztahem:
+x pokud x ≥ 0, 
+|x| = −x pokud x < 0.
+
+Tedy absolutní hodnota čísla je jeho „vzdálenost od nuly na souřadné ose“.
+Podíváme-li se na předchozí
+
+{{anchor:str45}}
+
+
+
+matematickýzápis |x|, můžeme vidět, že se vlastně jednaó vyjádření hodnoty v závislosti na vztahu x k nule.
+
+Tento matematický výraz můžeme zcela přímočaře přepsat pomocí speciální formy if následovně:
+<code scheme>
+(define abs
+  (lambda (x)
+    (if (>= x 0)
+      x
+      (- x))))</code>
+
+Jak se můžete sami přesvědčit, procedura při aplikaci skutečně vrací absolutní hodnotu daného argumentu.
+
+Nyní si uvedeme několik procedur, které majísvaústálenáslovnıóznačení, kteráse používají i v matematice.
+
+První z nich je procedura zvaná identita.
+Identita je procedura jednoho argumentu, který pro daný argument vrací právě jeho hodnotu.
+Identitu bychom tedy vytvořili vyhodnocením následujícího λ-výrazu:
+<code scheme>
+(lambda (x) x) ;⇒ identita: „procedura která pro dané x vrací x“</code>
+
+Při použití se tedy identita chová následovně:
+<code scheme>
+((lambda (x) x) 20) ;⇒ 20
+
+(define id (lambda (x) x))
+
+(id (* 2 20)) ;⇒ 40
+
+(id (+ 1 (id 20))) ;⇒ 21
+
+(id #f) ;⇒ #f
+
+((id -) 10 20) ;⇒ -10</code>
+
+Všimněte si, jak se vyhodnotil poslední výraz.
+První prvek seznamu ''%%((%%id -) 10 20)'', to jest ''(id -)'' se vyhodnotil na proceduru „odčítání“,
+protože vyhodnocení tohoto seznamu způsobilo aplikaci identity na argument
+jimž byla právě procedura „odčítání“ navázanána symbol -.
+
+Další procedury s ustáleným názvem jsou projekce.
+Pro každých n formálních argumentů můžeme uvažovat právě n procedur π1, ... , πn,
+kde každá πi je procedura n argumentů vracející hodnotu svého i-tého argumentu.
+Proceduře πi říkáme i-tá projekce.
+Uvažme pro ilustraci situaci, kdy n = 3 (tři argumenty).
+Pak budou projekce vypadat následovně:
+
+<code scheme>
+(lambda (x y z) x) ;⇒ první projekce: „procedura vracející hodnotu svého prvního argumentu“
+
+(lambda (x y z) y) ;⇒ druhá projekce: „procedura vracející hodnotu svého druhého argumentu“
+
+(lambda (x y z) z) ;⇒ třetí projekce: „procedura vracející hodnotu svého třetího argumentu“</code>
+
+Přísně vzato, procedura identity je vlastně první projekcí (jediného argumentu).
+
+Použití projekcí můžeme vidět na dalších příkladech:
+
+<code scheme>
+(define 1-of-3 (lambda (x y z) x))
+
+(define 2-of-3 (lambda (x y z) y))
+
+(define 3-of-3 (lambda (x y z) z))
+
+(1-of-3 10 20 30) ;⇒ 10
+
+(2-of-3 10 (+ 1 (3-of-3 2 4 6)) 20) ;⇒ 7
+
+((3-of-3 #f - +) 13) ;⇒ 13
+
+((2-of-3 1-of-3 2-of-3 3-of-3) 10 20 30) ;⇒ 20</code>
+
+K tomu abychom si přesně uvědomili jak se vyhodnotily poslední dva výrazy
+se potřebujeme zamyslet nad vyhodnocením jejich prvního prvku (proveďte podrobně sami).
+
+{{anchor:str46}}
+Dalšími procedurami jsou konstantní procedury, která ignorují sve árgumenty
+a vracejí nějakou konstantní hodnotu (vždy stejný element). Například:
+<code scheme>
+(lambda (x) 10) ;⇒ konstantní procedura: „vrat’ číslo 10“
+
+(lambda (x) #f) ;⇒ konstantní procedura: „vrat’ pravdivostní hodnotu #f“
+
+(lambda (x) +) ;⇒ konstantní procedura: „vrat’ hodnotu navázanou na symbol +“
+...</code>
+
+Viz následující příklady definice a aplikací konstantních procedur:
+<code scheme>
+(define c
+
+  (lambda (x) 10))
+
+(+ 1 (c 20)) ;⇒ 11
+
+(((lambda (x) -) 10) 20 30) ;⇒ -10</code>
+
+Důležité je neplést si konstantní proceduru jednoho argumentu s procedurou bez argumentu.
+Například následující dvě definice zavádějí konstantní proceduru jednoho argumentu a analogickou proceduru bez argumentu:
+<code scheme>
+(define const-proc (lambda (x) 10))
+
+(define noarg-proc (lambda () 10))</code>
+
+Zásadní rozdíl je však v jejich aplikaci:
+<code scheme>
+(const-proc 20) ;⇒ 10
+
+(noarg-proc) ;⇒ 10</code>
+
+Kdybychom aplikovali proceduru navázanou na const-proc bez argumentu, vedlo by to k chybě.
+Stejně tak by vedl k chybě pokus o aplikaci procedury noarg-proc s jedním (nebo více) argumenty.
+
+{{anchor:s2_2}}
+======= 2.2 Vyhodnocování elementů v daném prostředí =======
+
+V předchozí sekci jsme nastínili problém potřeby pracovat s více prostředími.
+Jedno prostředí je počáteční prostředí, ve kterém jsou definovány počáteční vazby symbolů.
+Dalšími prostředími jsou lokální prostředí procedur,
+ve kterých jsou vázány na formální argumenty hodnoty se kterými byly procedury aplikovány.
+
+Situace je ve skutečnosti ještě o něco komplikovanější.
+Budeme potřebovat pracovat obecně s několika prostředími současně.
+Tato prostředí mezi sebou navíc budou hierarchicky provázaná.
+V této sekci se proto zaměříme na samotná prostředí a následnézobecnění vyhodnocovacího procesu.
+Pracujeme-li totiž s více jak jedním prostředím, je potřeba vztáhnout vyhodnocování elementů
+(část „Eval“ cyklu REPL, viz definici 1.25) relativně vzhledem k prostředí.
+Budeme se tedy zabývat zavedením vyhodnocení elementu E v prostředí P.
+
+Nejprve uvedeme, co budeme mít od tohoto okamžiku na mysli pod pojmem „prostředí“.
+
+Definice 2.5 (prostředí). Prostředí P je tabulka vazeb mezi symboly a elementy,
+přitom každé uvažované prostředí, kromě jediného, má navíc ukazatel na svého předka, což je opět prostředí.
+Prostředí, kterénemásvého předka, budeme označovat PG a budeme jej nazývat globální (počáteční) prostředí.
+Fakt, že prostředí P1 je předkem prostředí P2, budeme značit P1 P2.
+Pokud P1 P2, pak také říkáme, že prostředí P1 je nadřazeno prostředí P2.
+Pokud je na symbol s v prostředí P navázán element E,
+pak řekneme, že E je aktuální vazba symbolu s v prostředí P a budeme tento fakt značit s →P E.
+Pokud je prostředí P zřejméz kontextu, pak budeme místo s →P E psát jen s → E.
+
+Poznámka 2.6. Prostředí je tedy tabulka zachycující vazby mezi symboly a hodnotami (elementy) jako doposud,
+k této tabulce navíc ale přibyl ukazatel na předka (na nadřazené prostředí).
+Pouze globální prostředí žádného předka nemá.
+Prostředí a vazby v nich obsažené včetně ukazatelů na předky budeme někdy zobrazovat pomocí diagramů.
+Příklad takového diagramu je na obrázku 2.1. V tomto obrázku jsou zachyceny čtyři prostředí: PG (globální), P1, P2 a P3.
+Šipky mezi prostředími ukazujína jejich předky.
+
+Z prostředí PG proto žádnášipka nikam nevede, předkem prostředí P1 je globální prostředí (tedy PG P1);
+
+předkem prostředí P2 a P3 je shodně prostředí P1 (zapisujeme P1 P2 a P1 P3).
+V samotných prostředích budeme pomocí již uvedeného značení „s → E“ zapisovat obsažené vazby symbolů,
+budeme přitom znázorňovat jen ty vazby, které jsou pro nás nějakým způsobem zajímavé
+(například v globálním prostředínebudeme vypisovat všechny počáteční vazby symbolů, to by bylo nepřehledné).
+
+{{anchor:str47}}
+
+Obrázek 2.1. Prostředí a jejich hierarchie 
+
+Všimněte si, že díky tomu, že každé prostředí (kromě globálního) másvého předka,
+na množinu všech prostředí (během výpočtu) se lze dívat jako na hierarchickou strukturu (strom).
+Globální (počáteční) prostředí, je prostředí ve kterém jsou nastaveny počáteční vazby symbolů
+a ve kterém jsme doposud uvažovali vyhodnocování.
+Jelikož globální prostředínemá předka, je v hierarchii prostředí „úplně na vrcholu“.
+Pod ním se v hierarchii nacházejí prostředí jejichž předkem je právě globální prostředí.
+Na další úrovni hierarchie jsou prostředí jejichž předky jsou prostředína předchozí úrovni a tak dále.
+Vznik nových prostředí uźce souvisís aplikací procedur, jak uvidíme v další sekci.
+
+Nyní uvedeme modifikaci vyhodnocování elementů.
+Místo vyhodnocení daného elementu E budeme uvažovat vyhodnocení elementu E v prostředí P:
+
+Definice 2.7 (vyhodnocení elementu E v prostředí P).
+
+Výsledek vyhodnocení elementu E v prostředí P, značeno Eval[E, P], je definován:
+(A) Pokud je E číslo, pak Eval[E, P] := E.
+
+(B) Pokud je E symbol, mohou nastat tři situace:
+
+(B.1) Pokud E →P F , pak Eval[E, P] := F .
+
+(B.2) Pokud E nemá vazbu v P a pokud P P, pak Eval[E, P] := Eval[E, P ].
+
+(B.e) Pokud E nemá vazbu v P a pokud P je globální prostředí, pak ukončíme vyhodnocování hlášením 
+„CHYBA: Symbol E nemá vazbu.“.
+
+(C) Pokud je E neprázdnýseznam tvaru (E1 E2 ··· En), pak F1 := Eval[E1, P].
+Dále rozlišujeme tři situace:
+(C.1) Pokud F1 je procedura, pak se v nespecifikovaném pořadí vyhodnotıÉ2, ... , En: F2 := Eval[E2, P],
+
+F3 := Eval[E3, P],
+
+..
+
+.
+
+.
+
+..
+
+Fn := Eval[En, P].
+
+Potom položíme Eval[E, P] := Apply[F1, F2, ... , Fn].
+
+{{anchor:str48}}
+
+
+
+(C.2) Pokud F1 je speciální forma, pak Eval[E, P] := Apply[F1, E2, ... , En].
+
+(C.e) Pokud F1 není procedura ani speciální forma, skončíme vyhodnocování hlášením
+
+„CHYBA: Nelze prové st aplikaci: E se nevyhodnotil na proceduru ani na speciální formu.“.
+
+(D) Ve všech ostatních případech klademe Eval[E, P] := E.
+
+Poznámka 2.8. (a) Všimněte si, že předchozí popis „Eval“ jsme rozšířili v podstatě jen velmi nepatrně.
+
+Oproti „Eval“ pracujícímu se speciálními formami, viz definici 1.25 na straně 33,
+jsme pouze přidali bod (B.2) zajišťující možnost hledat vazby v nadřazených prostředích.
+U všech ostatních výskytů „Eval“ v definici 3.7 provádíme vyhodnocení v témže prostředí P.
+Další úpravou, kterou jsme provedli, je vyžadováníneprázdného seznamu na počátku bodu (C).
+To jsme provedli kvůli tomu, že jsme se dohodli na možnost uvažovat prázdné seznamy
+(kvůli možnosti vyjádřit procedury bez argumentů).
+
+(b) Prozkoumáme-li podrobněji bod (B), zjistíme, že říkánásledující.
+Pokud má danýsymbol aktuální vazbu v prostředí, ve kterém jej vyhodnocujeme,
+pak je výsledkem vyhodnocení jeho vazba, viz bod (B.1).
+Pokud symbol v daném prostředí vazbu nemá, pak bude vazba hledána v jeho nadřazeném prostředí, viz bod (B.2).
+
+Pokud ani tam nebude nalezena, bude se hledat v dalším nadřazeném prostředí,
+dokud se v hierarchii prostředínedojde až k prostředí globálnímu.
+Pokud by vazba neexistovala ani v globálním prostředí, vyhodnocování by končilo chybou, viz bod (B.e).
+
+Příklad 2.9. Vrat’me se k prostředím uvedeným na obrázku 2.1.
+Z obrázku můžeme snadno vyčíst, že platí například Eval[ahoj, P3] = 0, Eval[x, P2] = 10, Eval[z, P1] je „nějaká procedura“,
+Eval[+, PG] je procedura sčítání a tak podobně.
+Dále například Eval[x, P3] = #f, protože symbol x má vazbu přímo v prostředí P3, hodnota navázanána x v nadřazeném prostředí P1 tedy nehraje roli.
+Naproti tomu Eval[z, P3] je „nějaká procedura“, přitom zde již symbol z v prostředí P3 vazbu nemá,
+vazba byla tedy hledána v nadřazeném prostředí, což bylo P1, ve kterém byla vazba nalezena.
+Kdybychom uvažovali Eval[+, P3], pak nebude vazba symbolu + nalezena ani v prostředí P1,
+takže se bude hledat jeho nadřazeném prostředí, což je prostředí globální, ve kterém již vazba nalezena bude.
+
+V tuto chvíli je potřeba objasnit ještě dvě věci.
+V cyklu REPL, který řídí vyhodnocovací proces abstraktního interpretu,
+se ve fázi „Eval“ (následující po načtenísymbolického výrazu a jeho převedení do interní formy)
+provádí vyhodnocování elementů.
+Teď, když jsme rozšířili vyhodnocovánıó dodatečný parametr, kterým je prostředí,
+musíme přesně říct, ve kterém prostředí evaluator spouštěný v cyklu REPL elementy vyhodnocuje.
+Není asi překvapující, že to bude globální (počáteční) prostředí PG.
+
+Další místo, kde může docházet k vyhodnocením, jsou speciální formy.
+Připomeňme, že každá speciální forma si sama vyhodnocuje (dle potřeby) své argumenty,
+takže speciální forma může rovněž používat evaluator.
+Obecně k tomu nelze nic říct (ve kterém prostředí bude docházet k vyhodnocování argumentů si každáspeciální forma bude určovat sama).
+Jelikož jsme doposud představili jen tři speciální formy (define, if a lambda), můžeme specifikovat, jak vyhodnocování probíhaú nich.
+Zaměříme se pouze na speciální formy define a if,
+protože přesná činnost speciální formy lambda bude popsaná až v další sekci.
+O formách define a if můžeme říct, že veškerá vyhodnocování provádějí v prostředí, ve kterém byly aplikovány.
+Toto prostředí, tedy prostředí v němž byla vyvolána aplikace speciální formy,
+budeme dále nazývat aktuální prostředí (aplikace speciální formy).
+Fakt, že speciální formy define a if provádějí vyhodnocování výrazů
+v aktuálním prostředí 2 je plně v souladu s naší intuicí,
+protože uvážíme-li například znovu kód
+<code scheme>
+(define abs
+  (lambda (x)
+    (if (>= x 0)
+      x
+      (- x))))</code>
+
+definující proceduru absolutní hodnoty, pak je žádoucí, aby při vyhodnocování těla pracovala forma if
+právě v lokálním (aktuálním) prostředí, to jest v prostředí kde je k dispozici vazba symbolu x.
+V globálním 2Přísně vzato by tedy aplikace speciální formy Apply[F1, E2, ... , En] uvedená v bodě (C.2)
+definice 2.7 měla obsahovat, jako jeden z argumentů, i prostředí P,
+tedy měla by být například ve tvaru Apply[P, F1, E2, ... , En].
+Pro jednoduchost značení však tento technický detail pomineme.
+Podotkněme, že tato poznámka se týká pouze speciálních forem, nikoliv procedur.
+
+{{anchor:str49}}
+
+
+
+prostředí je tento symbol nedefinovaný.
+Analogicky, vyhodnocením ''(define name výraz )'' v prostředí P (to jest Eval[(define name výraz ), P])
+se v prostředí P provede vazba symbolu name na výsledek vyhodnocení argumentu výraz.
+Více se o vzniku a aplikaci procedur dozvíme v další sekci.
+
+V této sekci jsme ukázali obecný koncept hierarchicky uspořádaných prostředí,
+kterého se již budeme držet dál během výkladu.
+Ve skutečnosti již nebudeme potřebovat vůbec upravovat vyhodnocovací proces.
+Od teď již budeme pouze uvažovat dalšíspeciální formy a procedury, kterými budeme náš
+abstraktní interpret postupně obohacovat.
+
+{{anchor:s2_3}}
+======= 2.3 Vznik a aplikace uživatelsky definovatelných procedur =======
+
+V této sekci přesně popíšeme vznik procedur.
+Zatím jsme uvedli, že uživatelsky definovatelné procedury vznikají vyhodnocováním λ-výrazů,
+ale neuvedli jsme, jak samotné procedury vypadají ani jak konkrétně vznikají.
+Stejně tak jsme z technických důvodů zatím nespecifikovali aplikaci uživatelsky definovatelných procedur.
+To jest, neřekli jsme, co je výsledkem provedení Apply[F1, F2, ... , Fn]
+pokud je F1 procedura vzniklá vyhodnocením λ-výrazu, viz bod (C.1) definice 2.7. Na tyto problémy se zaměříme nyní.
+
+Abychom mohli při aplikaci procedur správně rozlišovat vazby vázaných a volných symbolů,
+musíme každou proceduru vybavit dodatečnou informacıó prostředí jejího vzniku.
+Uživatelsky definovatelné procedury tedy budeme chápat jako elementy obsahující v sobě seznam formálních argumentů,
+tělo a odkaz na prostředísvého vzniku, viz následující definici:
+
+Definice 2.10 (uživatelsky definovaná procedura). Každá trojice ve tvaru parametry , tělo , P ,
+kde parametry je seznam formálních argumentů (to jest seznam po dvou různých symbolů),
+tělo je libovolný element a P je prostředí, se nazývá uživatelsky definovaná procedura.
+
+Dále specifikujeme, jak uživatelsky definované procedury přesně vznikají.
+Přísně vzato teď vlastně popíšeme činnost speciální formy lambda, která je překvapivě jednoduchá:
+Definice 2.11 (speciální forma lambda).
+Speciální forma lambda se používáse dvěma argumenty tak, jak to bylo popsáno v definici 2.1.
+Při aplikaci speciální formy lambda vyvolané vyhodnocením λ-výrazu (lambda ( param1 param2 · · · paramn ) tělo )
+
+v prostředí P vznikne procedura ( param1 param2 · · · paramn ), tělo , P .
+
+Všimněte si, že předchozí definice říká, jak vznikají uživatelsky definované procedury.
+Při vyhodnocení λ-výrazu se vezme seznam formálních parametrů a tělo (to jest druhýa třetí prvek λ-výrazu)
+a spolu s prostředím, ve kterém byl λ-výraz vyhodnocen, se zapouzdří do nově vzniklé procedury.
+Uživatelsky definované procedury jsou tedy elementy jazyka skládajícíse právě ze seznamu formálních argumentů,
+těla, a prostředí vzniku procedury.
+Dalšízajímavý rys vzniku procedur je, že speciální forma lambda během své aplikace neprovádížádné vyhodnocování elementů.
+
+Z předchozího je zřejmé, že každá procedura vzniklá vyhodnocením λ-výrazu si v sobě nese informaci o prostředí,
+ve kterém vznikla. Tato informace bude dále použita při aplikaci procedury.
+
+Definice 2.12 (aplikace procedury). Mějme dánu proceduru E a necht’E1, ... , En jsou libovolneélementy jazyka.
+Aplikace procedury E na argumenty E1, ... , En (v tomto pořadí), bude značena Apply[E, E1, ... , En]
+v souladu s definicí 1.16 na straně 24.
+V případě, že E je primitivní procedura, pak je hodnota její aplikace Apply[E, E1, ... , En]
+vypočtena touto primitivní procedurou (nezabýváme se přitom tím jak je vypočtena).
+
+Pokud je E uživatelsky definovaná procedura ve tvaru ( param1 · · · paramm ), tělo , P , pak hodnotu
+
+Apply[E, E1, ... , En], definujeme takto:
+
+{{anchor:50}}
+
+Program 2.1. Výpočet délky přepony v pravoúhlém trojúhelníku.
+
+<code scheme>
+(define na2
+
+  (lambda (x)
+
+    (* x x)))
+
+(define soucet-ctvercu
+
+  (lambda (a b)
+
+    (+ (na2 a) (na2 b))))
+
+(define prepona
+
+  (lambda (odvesna-a odvesna-b)
+
+    (sqrt (soucet-ctvercu odvesna-a odvesna-b))))</code>
+
+(1) Pokud se m (počet formálních argumentů procedury E) neshoduje s n (počet argumentů se kterými chceme proceduru aplikovat), pak aplikace končíchybovým hlášením „CHYBA: Chybný počet argumentů, proceduře bylo předáno n, očekáváno je m“. V opačném případě se pokračuje dalším krokem.
+
+(2) Vytvoříse nové prázdné prostředí Pl, kterénazýváme lokální prostředí procedury.
+Tabulka vazeb prostředí Pl je v tomto okamžiku prázdná (neobsahuje žádné vazby), předek prostředí Pl není nastaven.
+
+(3) Nastavíme předka prostředí Pl na hodnotu P (předkem prostředí Pl je prostředí vzniku procedury E).
+
+(4) V prostředí Pl se zavedou vazby parami → Ei pro i = 1, ... , n.
+
+(5) Položíme Apply[E, E1, ... , En] := Eval[ tělo , Pl].
+
+Poznámka 2.13. Výsledkem aplikace uživatelsky definované procedury je tedy hodnota vzniklá vyhodnocením jejího těla
+v prostředí, ve kterém jsou na formální argumenty procedury navázané hodnoty předané
+proceduře, přitom předek tohoto nového prostředí je nastaven na prostředí vzniku procedury.
+Při vyhodnocovánísamotného těla v novém (lokálním) prostředí jsou zřejmě všechny vazby vázaných symbolů
+nalezeny přímo v lokálním prostředí.
+Vazby volných symbolů se hledají v prostředích, které jsou nadřazené (počínaje prostředím vzniku procedury).
+
+Všimněte si, že při aplikaci procedur může dojít k „překrytí globálně definovaných symbolů.“
+Například pokud bychom provedli následující aplikaci:
+<code scheme>
+((lambda (+) (- +)) 10) ;⇒ -10,</code>
+
+pak při aplikaci procedury vzniklé vyhodnocením ''(lambda (+) (- +))'' s hodnotou 10 vznikne prostředí,
+ve kterém bude na symbol + navázána hodnota 10. V tomto prostředí bude vyhodnocen výraz (- +).
+
+Vazba volného symbolu - bude nalezena v globálním prostředí (což je prostředí vzniku naší procedury),
+naproti tomu vazba symbolu + bude nalezena už v lokálním prostředí (hodnota 10).
+Výsledkem aplikace je tedy skutečně -10.
+V lokálním prostředí tedy vazba symbolu + překryla vazbu, kteraéxistuje v globálním prostředí,
+kde je na symbol navázána primitivní procedura sčítání.
+Překrytí definice symbolů v tomto smyslu je někdy nechtěné, ale v mnoha případech je účelné,
+jak uvidíme v příští lekci.
+
+Nová prostředí vznikají aplikací (uživatelsky definovaných) procedur, tedy nikoliv při jejich vytváření,
+ale až v momentě, kdy jsou procedury aplikovány.
+Tomu je potřeba rozumět tak, že s každou novou aplikací (jedné) procedury vznikne nové prostředí.
+Dále si všimněte, že z hlediska vazeb symbolů v těle procedury je úplně jedno, odkud proceduru aplikujeme,
+protože vazby symbolů se při vyhodnocování
+těla hledají počínaje lokálním prostředím – pokud v něm nejsou nalezeny, tak se přejde do nadřazeného prostředí,
+což je prostředí vzniku procedury. Prostředí odkud byla aplikace vyvolána tedy nemá uplatnění.
+
+{{anchor:str51}}
+
+
+
+Obrázek 2.2. Vznik prostředí během aplikace procedur z programu 2.1
+
+Příklad 2.14. Uvažujme nyní program 2.1 skládajícíse z několika procedur.
+Jde opět o program pro výpočet velikosti přepony pravoúhlého trojúhelníka,
+přitom procedura navázanána symbol prepona v sobě používá pomocnou proceduru počítajícísoučet čtverců.
+Procedura pro výpočet součtu čtverců v sobě jako pomocnou proceduru používá proceduru pro výpočet druhé mocniny.
+Pokud bychom v interpretu zadali výraz (prepona 3 4), tak bude jeho vyhodnocování probíhat následovně.
+Nejprve bude aplikována procedura navázanána prepona s hodnotami 3 a 4,
+takže vznikne nové prostředí v němž budou tyto hodnoty navázanéna formální argumenty odvesna-a a odvesna-b.
+Předchůdcem tohoto prostředí bude globální prostředí, protože to je prostředí,
+ve kterém tato procedura vznikla (vznikly v něm všechny uvedené procedury, takže to již dál nebudeme zdůrazňovat).
+Viz obrázek 2.2.
+V lokálním prostředí je tedy vyhodnoceno tělo, to jest výraz (sqrt (soucet-ctvercu odvesna-a odvesna-b)).
+Vyhodnocení tohoto výrazu povede na aplikaci procedury pro součet čtverců.
+Až k její aplikaci dojde, vznikne nové prostředí, ve kterém budou na symboly a a b
+(což jsou formální argumenty dané procedury) navázány hodnoty vzniklé vyhodnocením odvesna-a
+a odvesna-b v lokálním prostředí procedury pro výpočet přepony (což jsou hodnoty 4 a 4).
+V lokálním prostředí procedury pro součet čtverců je pak vyhodnoceno její tělo.
+Při jeho vyhodnocování dojde ke dvojí aplikaci procedury pro výpočet druhé mocniny,
+jednou s argumentem 3 a jednou s argumentem 4.  Takže vzniknou dvě další prostředí.
+V každém z těchto dvou prostředíse vyhodnotí výraz (* x x),
+což povede na výsledky 9 (v případě prostředí, kde x → 3) a 16 (v případě prostředí, kde x → 4).
+
+Výsledné hodnoty vzniklé voláním druhých mocnin jsou použity při aplikaci sčítání,
+které je provedeno v těle procedury pro součet čtverců, výsledkem její aplikace tedy bude hodnota 25.
+Tato hodnota je potom použita v těle procedury pro výpočet délky přepony při aplikaci procedury pro výpočet odmocniny.
+Výraz (prepona 3 4) se tedy vyhodnotína 5.
+Během jeho vyhodnocení vznikly čtyři nová prostředí, každé mělo za svého předka globální prostředí, viz obrázek 2.2.
+
+{{anchor:s2_4}}
+======= 2.4 Procedury vyšších řádů =======
+
+V této sekci se budeme zabývat dalšími aspekty uživatelsky definovatelných procedur.
+Konkrétně se budeme zabývat procedurami, kterým jsou při aplikaci předávány další procedury jako argumenty
+nebo které vracejí procedury jako výsledky své aplikace.
+Souhrnně budeme procedury tohoto typu nazývat procedury vyšších řádů.
+Z hlediska jazyka Scheme však procedury vyšších řádů nejsou „novým typem procedur“,
+jednáse o standardní procedury tak, jak jsme je chápali doposud.
+Tyto procedury „pouze“ pracujís dalšími procedurami jako s hodnotami
+(buď je dostávají formou argumentů nebo je vrací jako výsledky aplikace).
+
+{{anchor:str52}}
+Než přistoupíme k samotné problematice přijmeme nejprve zjednodušující konvenci týkajícíse označování
+(pojmenovávání) procedur:
+Úmluva 2.15 (o pojmenovávání procedur).
+V dalším textu budeme procedury, které jsou po svém vytvoření navázány na symboly,
+pojmenovávat stejně jako samotné symboly.
+
+Podle předchozí úmluvy budeme tedy hovořit o proceduře + místo přesnějšího: „procedura navázanána symbol +“.
+Jako první příklad procedury vyššího řádu si uvedeme proceduru, které bude předána další procedura jako argument.
+Viz program 2.2. Procedura infix v programu 2.2 je aplikována se třemi argumenty.
+
+Program 2.2. Procedura provádějící infixovou aplikaci procedury dvou argumentů.
+
+<code scheme>
+(define infix
+
+  (lambda (x operace y)
+
+    (operace x y)))
+</code>
+Formální argumenty jsme nazvali x, operace a y.
+Přeneseme-li svou pozornost na tělo této procedury, vidíme, že jeho vyhodnocení (k němuž dochází při aplikaci procedury) povede na pokus o aplikaci procedury navázanéna symbol operace s argumenty navázanými na symboly x a y.
+Skutečně je tomu tak, protože symbol operace se v těle procedury nacházína první pozici v seznamu.
+Bude-li tedy procedura infix aplikována s druhým argumentem jímž nebude procedura (nebo speciální forma, přísně vzato),
+pak vyhodnocení těla skončí v bodě (C.e) chybou.
+Smysluplná aplikace procedury je tedy taková, při které jako druhýargument předáváme proceduru dvou argumentů
+a první a třetí argument budou hodnoty, se kterými má být předaná procedura aplikována.
+Jaký má tedy účel procedura infix?
+Jednás o proceduru, pomocí které můžeme vyhodnocovat jednoduché výrazy v „infixovénotaci“.
+Připomeňme, že problematika výrazů zapsaných v různých notacích,
+byla probrána v [[L1#s1_2|sekci 1.2]] začínající na [[L1#str13|straně 13]].
+Viz příklady použití procedury infix:
+
+<code scheme>
+(infix 10 + 20) ;⇒ 30
+
+(infix 10 - (infix 2 + 5)) ;⇒ 3
+
+(infix 10 (lambda (x y) x) 20) ;⇒ 10
+
+(infix 10 (lambda (x y) 66) 20) ;⇒ 66
+
+(infix 10 (lambda (x) 66) 20) ;⇒ „CHYBA: Chybný počet argumentů při aplikaci.“
+
+(infix 10 20 30) ;⇒ „CHYBA: Nelze aplikovat: 20 není procedura.“</code>
+
+Na předchozím příkladu si všimněte toho,
+že v prvních dvou případech jsme předávali proceduře infix primitivní procedury sčítání a odčítání,
+v dalších případech jsme předávali procedury vzniklé vyhodnocením λ-výrazů
+(konkrétně to byly projekce a konstantní funkce).
+V hlediska vyhodnocovacího procesu a aplikace procedur je skutečně jedno,
+zdali procedura, kterou předáváme je primitivní procedura nebo uživatelsky definovaná procedura.
+
+Nynísi ukážeme proceduru, která bude vracet další proceduru jako výsledek své aplikace.
+Podívejte se na proceduru curry+ definovanou v programu 2.3. Procedura curry+ má pouze jedinýargument.
+Tělo pro-Program 2.3. Rozložení procedury sčítání na dvě procedury jednoho argumentu.
+
+<code scheme>
+(define curry+
+
+  (lambda (c)
+
+    (lambda (x)
+
+      (+ x c))))</code>
+
+cedury curry+ obsahuje λ-výraz ''(lambda (x) (+ x c))''.
+To znamená, že při aplikaci procedury curry+ bude vyhodnoceno její tělo, jímž je tento λ-výraz.
+Jeho vyhodnocením vznikne procedura (jednoho argumentu), která bude vrácena jako výsledná hodnota aplikace curry+.
+Při každé aplikaci curry+ tedy vznikne nová procedura.
+Proceduru vzniklou aplikací (curry+ základ ) bychom mohli slovně označit jako „proceduru,
+která hodnotu svého argumentu přičte k číslu základ “.
+{{anchor:str53}}
+Abychom lépe pochopili, co vlastně dělá procedura curry+, jak probíhá její aplikace a jak probíhaáplikace procedur,
+kterécurry+ vrací, si podrobně rozebereme následující příklad použití curry+:
+
+<code scheme>
+(define f (curry+ 10))
+f ;⇒ „procedura, která hodnotu svého argumentu přičte k hodnotě 10“
+(f 20) ;⇒ 30</code>
+
+Nejprve rozebereme vyhodnocení prvního výrazu.
+Na symbol f bude navázána hodnota vznklá vyhodnocením (curry+ 10).
+Při vyhodnocování tohoto výrazu dojde k aplikaci uživatelsky definované procedury curry+ s argumentem 10.
+Při její aplikaci vznikne prostředí P, jehož předkem bude globální prostředí
+(protože v něm vznikla curry+), a ve kterém bude na symbol c navázána hodnota 10.
+V prostředí P bude vyhodnoceno tělo procedury curry+, to jest výraz (lambda (x) (+ x c)).
+Jeho vyhodnocením vznikne procedura (x), (+ x c), P , která je vrácena jako výsledek aplikace curry+.
+Tím pádem bude po vyhodnocení prvního výrazu na symbol f navázána procedura (x), (+ x c), P .
+
+Zaměříme-li se teď na třetí řádek v předchozí ukázce, to jest na vyhodnocení (f 20), pak je zřejmé,
+že jde o aplikaci procedury navázanéna symbol f (naše nově vytvořená procedura) s hodnotou 20.
+Při aplikaci (x), (+ x c), P dojde k vytvořenínového prostředí, nazvěme jej třeba P .
+Jeho předkem bude prostředí P a prostředí P bude obsahovat vazbu symbolu x na hodnotu 20.
+Nyní tedy již uvažujeme tři prostředí: PG (globální), P (prostředí vzniku procedury navázanéna symbol f)
+a P (prostředí poslední aplikace procedury), pro která platí PG P P , viz obrázek 2.3.
+V prostředí P bude vyhodnoceno tělo procedury, Obrázek 2.3.
+Vznik prostředí během aplikace procedur z programu 2.3 to jest výraz (+ x c).
+Nyní je dobře vidět, že symbol x má vazbu přímo v prostředí P (lokální prostředí aplikované procedury),
+symbol c v P nemá vazbu, ale má vazbu v jeho předchůdci P a konečně symbol + nemá vazbu ani v P ani v P,
+ale až v globálním prostředí PG.
+Snadno tedy nahlédneme, že výsledkem aplikace je hodnota součtu 20 a 10, což je číslo 30.
+
+Z předchozího rozboru procedury curry+ plyne, že ji můžeme chápat jako proceduru,
+která rozloží proceduru sčítání dvou argumentů na dvě procedury jednoho argumentu tak,
+že prvnísčítanec je dán hodnotou, se kteru aplikujeme curry+ a druhýsčítanec je dán hodnotou,
+se kterou aplikujeme vrácenou proceduru.
+Proceduru vrácenou při volánícurry+ lze tedy skutečně chápat jako proceduru,
+která k danému základu přičte předávanýargument.
+Pomocí curry+ bychom mohli snadno nadefinovat řadu užitečných procedur pro přičítání konstant, viz ukázku:
+
+<code scheme>
+(define 1+ (curry+ 1))
+
+(define 2+ (curry+ 2))
+
+(define pi+
+
+  (curry+
+
+    (* 4 (atan 1))))
+
+(1+ 10) ;⇒ 11
+
+(2+ 10) ;⇒ 12
+
+(pi+ 10) ;⇒ 13.14159265359
+</code>
+Proceduru vrácenou při aplikaci curry+ můžeme samozřejmě (jednorázově) volat i bez nutnosti vytvářet pomocnou vazbu procedury na symbol:
+
+<code scheme>
+((curry+ 1) 2) ;⇒ 3
+
+((curry+ 1) ((curry+ 2) 3)) ;⇒ 6</code>
+
+{{anchor:str54}}
+Dalším rysem práce s procedurami, na který bychom měli upozornit, je šířeníchyb v programu. Uvažujme následující kód:
+<code scheme>
+(define f (curry+ #f))
+
+(f 10) ;⇒ „CHYBA: Nelze sčítat čísla a pravdivostní hodnoty.“</code>
+
+Zcela zřejmě došlo k chybě vzhledem k pokusu o sčítáníčísla 10 s pravdivosntí hodnotu #f.
+Nutné je ale dobře si rozmyslet, kde k chybě došlo.
+Všimněte si, že aplikace curry+ proběhla zcela v pořádku.
+To by pro nás v tuto chvíli nemělo být překvapující, protože curry+ pouze vytvářínovou proceduru.
+Při tomto procesu nedochází k vyhodnocování těla vytvářené procedury.
+Žádnáchyba se v tomto bodě výpočtu neprojevila.
+Až při volání vytvořené procedury se interpret pokoušísečíst hodnotu 10 navázanou na x v lokálním prostředí
+s hodnotou #f navázanou na c v prostředí vzniku vrácené procedury.
+A až zde dojde k chybě.
+To je výrazný rozdíl proti tomu, kdybychom uvažovali výsledek vyhodnocení výrazu (+ #f 13),
+zde by k chybě došlo okamžitě.
+Kdybychom nyní provedli globální redefinici +:
+(define + (lambda (x y) x)),
+
+pak bychom při aplikaci (f 10) dostali:
+
+(f 10) ;⇒ 10,
+
+protože jsme symbol + v globálním prostředí redefinovali na projekci prvního argumentu ze dvou
+a tím je hodnota navázanána symbol x (hodnota #f navázaná v předcházejícím prostředína c tedy nebude hrát roli),
+viz program 2.3 a obrázek 2.3.
+
+Poslední věc, na kterou poukážeme, je rys souvisejícís hierarchií prostředí,
+která vznikají při aplikaci těchto procedur. Vezmeme-li si kus kódu:
+<code scheme>
+(define f (curry+ 10))
+(f 20) ;⇒ 30
+(f 100) ;⇒ 110</code>
+
+pak bychom si měli být vědomi toho, že procedura curry+ byla aplikována pouze jednou, kdežto procedura vzniklá její
+(jedinou) aplikací byla aplikována dvakrát, vznikne nám tedy hierarchie prostředí jako na obrázku 2.4.
+Nyní můžeme objasnit, proč jsme vlastně uživatelsky definovatelné procedury chápali jako Obrázek 2.4.
+Vznik prostředí během aplikace procedur z programu 2.3 trojice, jejichž jednou složkou bylo prostředí jejich vzniku.
+Bylo to z toho důvodu, že jsme chtěli, aby vazby všech volných symbolů v těle procedur
+byly hledány v prostředích vzniku procedur.
+Bez použití procedur vyšších řádů byla situace poněkud triviální,
+protože prostředí vzniku procedury bylo vždy globální prostředí3.
+Nyní vidíme, že uvážíme-li procedury vracející jiné procedury jako výsledky svých aplikací,
+pak musíme mít u každé procedury podchyceno prostředí jejího vzniku.
+Bez této informace bychom nebyli schopni hledat vazby volných symbolů.
+
+3V příští lekci uvidíme, že to tak úplně není pravda.
+V jazyku Scheme zavedeme pojem interní definice a zjistíme,
+že i bez použití procedur vyšších řádů mohou být prostředím vzniku procedur lokální prostředí vzniklaáplikací jiných procedur.
+
+{{anchor:str55}}
+
+
+
+Jak již bylo řečeno, vazby v daném prostředí překrývají definice vazeb v prostředích nadřazených.
+V příkladě z obrázku 2.4 to mánásledujícížádoucí efekt – pokud provedeme globální definici symbolu c,
+pak tím nijak neovlivníme činnost procedury curry+, ani procedur vzniklých její aplikací.
+Viz příklad:
+<code scheme>
+(define f (curry+ 10))
+
+(define c 666)
+
+(f 20) ;⇒ 30
+
+(f 100) ;⇒ 110</code>
+
+V druhém kroku je zavedena vazba c →P 666, kteraále nemá vliv na hodnotu vazby v prostředí volání
+G
+curry+.
+Při vyhodnocení těla procedury navázanéna f bude opět vazba symbolu c nalezena v prostředí P.
+
+Fakt, že c mányní vazbu i v prostředínadřazeném je nepodstatný.
+
+Poznámka 2.16. (a) Analogickým způsobem, jako jsme v programu 2.
+rozložili proceduru sčítánína proceduru jednoho argumentu vracející proceduru druhého argumentu,
+bychom mohli rozložit libovolnou proceduru dvou argumentů.
+Rozklad procedury dvou argumentů tímto způsobem je výhodný v případě,
+kdy první argument je při řadě výpočtů pevnýa druhýargument může nabývat různých hodnot.
+Tento princip rozkladu poprvé použil americký logik Haskell Brooks Curry (1900–1982).
+Princip se nynína jeho počest nazývácurrying (termín nemáčeskýekvivalent).
+Po tomto logikovi je rovněž pojmenován významný
+představitel funkcionálních jazyků – Haskell.
+
+(b) Z předchozích příkladů je zřejmé,
+že po ukončení aplikace procedury nemůže být lokální prostředínějak „zrušeno“.
+To jest skutečneínterprety jazyka Scheme musí lokální prostředí udržovat například v případě,
+kdy jako výsledek aplikace procedury vznikla další procedura
+pro niž se dané prostředí tím pádem stává prostředím jejího vzniku.
+
+(c) Ve většině programovacích jazyků, ve kterých existuje nějakaánalogie procedur
+(snad všechny funkcionální jazyky a drtivá většina procedurálních jazyků),
+lze s procedurami manipulovat pouze omezeně.
+
+Je například možné předávat procedury jako argumenty jiným procedurám. Například v procedurálním jazyku C je možné předat proceduře (v terminologii jazyka C se procedurám říká funkce) jinou proceduru formou ukazatele (pointeru). V drtivé většině jazyků však procedury nemohou během výpočtu dynamicky vznikat tak, jako tomu je v našem jazyku (světlou výjimkou jsou dialekty LISPu a jiné funkcionální jazyky).
+
+(d) Procedury jsou ve většině vyšších programovacích jazyků (z těch co disponují procedurami) vytvářeny jako pojmenované – to jest jsou definovány vždy s jejich jménem.
+Naproti tomu v našem jazyku všechny procedury vznikají jako anonymní, to jest, nejsou nijak pojmenované.
+Svázání jména (symbolu) s procedurou můžeme ale následně prové st pomocíspeciální formy define tak,
+jak jsme to v této lekci již na mnoha místech udělali.
+Pouze málo vyšších jazyků, kterénespadají do rodiny funkcionálních jazyků,
+disponuje možností vytvářet procedury anonymně (například do lze udělat v jazyku Python).
+
+(e) V předchozích ukázkách procedur vracejících procedury jsme vždy vraceli uživatelsky definované procedury.
+Nic samozřejmě nebrání tomu, abychom vraceli i primitivní procedury,
+i když to nenízdaleka tak užitečné.
+Například vyhodnocením výrazu (lambda (x) sqrt) vzniká (konstantní) procedura jednoho argumentu,
+která vždy vrací primitivní proceduru pro výpočet druhé odmocniny.
+
+Pro každý vyšší programovací jazyk můžeme uvažovat jeho elementy prvního řádu.
+Viz následující definici: Definice 2.17 (element prvního řádu).
+Element prvního řádu je každý element jazyka, pro který platí:
+(i) element může být pojmenován,
+
+(ii) element může být předán proceduře jako argument,
+
+(iii) element může vzniknout aplikací (voláním) procedury,
+
+(iv) element může být obsažen v hierarchických datových strukturách.
+
+S výjimkou bodu (iv), jehož smysl objasníme v jedné z dalších lekcí, je zřejmé,
+že procedury jsou z pohledu jazyka Scheme elementy prvního řádu, protože je můžeme pojmenovat,
+předávat jako argumenty, vytvářet aplikací jiných procedur (a poslední podmínka platí také).
+Jak jsme již naznačili v předchozí poznámce, většina programovacích jazyků tento „luxus“ neumožňuje.
+Procedury jako elementy prvního řádu jsou až na výjimky doménou funkcionálních programovacích jazyků.
+
+{{anchor:str56}}
+
+Za procedury vyšších řádů považujeme procedury, které jsou aplikovány s jinými procedurami jako se svými argumenty
+nebo vracejí procedury jako výsledky své aplikace.
+Termín „procedury vyšších řádů“ je inspirovaný podobným pojmem používaným v matematické logice (logiky vyšších řádů).
+
+Samotné vytváření procedur vyšších řádů se nijak nelišıód vytváření procedur, které jsme používali doposud.
+Nijak jsme nemuseli upravovat vyhodnocovací proces ani aplikaci.
+Z praktického hlediska chce vytváření procedur vyšších řádů od programátora o něco vyššístupeň abstrakce – programátor se musí plně sžít s faktem, že s procedurami se pracuje jako s hodnotami.
+
+{{anchor:s2_5}}
+======= 2.5 Procedury versus zobrazení =======
+
+V této sekci se zaměříme na vztah procedur a (matematických) funkcí.
+Připomeňme, pod pojmem funkce (zobrazení) množiny X = ∅ do množiny Y = ∅ máme na mysli relaci R ⊆ X × Y takovou, že pro každé
+
+x ∈ X existuje právě jedno y ∈ Y tak, že x, y ∈ R.
+Obvykle přijímáme následujícínotaci.
+Zobrazeníznačíme obvykle malými písmeny f, g, ...
+Pokud je relace f ⊆ X × Y zobrazením, pak píšeme f (x) = y místo x, y ∈ f .
+Fakt, že relace f ⊆ X × Y je zobrazenízapisujeme f : X → Y .
+Pokud X = Z1 × · · · × Zn, pak každézobrazení f : Z1 × · · · × Zn → Y nazýváme n-árnízobrazení.
+Místo f ( z1, ... , zn ) = y píšeme poněkud nepřesně, i když bez újmy, f (z1, ... , zn) = y.
+
+Slovně řečeno, n-árnízobrazení f : X1 × · · · × Xn → Y přiřazuje každén-tici prvků x1 ∈ X1, ... , xn ∈ Xn (v tomto pořadí)
+prvek y z Y označovaný f (x1, ... , xn).
+Pokud X = X1 = · · · = Xn, pak píšeme stručně f : Xn → Y .
+Studentům budou asi nejznámější speciální případy zobrazení
+používané v úvodních kurzech matematické analýzy – funkce jedné reálné proměnné.
+Z pohledu zobrazení jsou funkce jedné ré alné proměnnézobrazení ve tvaru f : S → R, kde ∅ = S ⊆ R.
+
+Uvážíme-li nyní (nějakou) proceduru (navázanou na symbol) f, která mán argumentů, nabízí se přirozená otázka,
+zdali lze tuto proceduru chápat jako nějakézobrazení.
+Tato otázka je zcela na místě, protože při aplikaci se n-ární proceduře předává právě n-tice elementů,
+pro kterou je vypočtena hodnota, což je opět element.
+Odpověď na tuto otázku je (za dodatečných podmínek) kladná, jak uvidíme dále.
+
+Při hledání odpovědi si předně musíme uvědomit,
+že aplikace n-ární procedury nemusí být pro každou n-tici elementů proveditelná.
+Aplikace třeba může končit chybou nebo vyhodnocování těla procedury nemusínikdy skončit
+(v tom případě se výsledku aplikace „nedočkáme“).
+Abychom demonstrovali, že druhásituace může skutečně nastat, uvažme,
+že procedura f má své tělo ve tvaru následujícího výrazu:
+<code scheme>
+((lambda (y) (y y)) (lambda (x) (x x)))</code>
+
+Pokud se zamyslíme nad průběhem vyhodnocování předchozího výrazu, pak zjistíme,
+že po první aplikaci procedury vzniklé vyhodnocením λ-výrazu (lambda (y) (y y))
+bude neustále dokola aplikována procedura vzniklá vyhodnocením λ-výrazu (lambda (x) (x x)),
+která si bude při aplikaci předávat sebe sama prostřednictvím svého argumentu (rozmyslete si podrobně proč).
+Pokus o vyhodnocení předchozího výrazu tedy vede k nekončícísérii aplikací téže procedury.
+
+Označíme-li nyní M množinu všech elementů jazyka, pak z toho co jsme teď uvedli, je zřejmé, že n-ární
+
+procedury obecně nelze chápat jako zobrazení f : M n → M , protože nemusejí být definované pro každou n-tici hodnot z M .
+I kdybychom se soustředili pouze na n-ární procedury,
+které jsou definované pro každou n-tici elementů (nebo se pro každou proceduru omezili jen na podmnožinu N ⊆ M n na které je definovaná),
+i tak nenízaručeno, že proceduru lze chápat jako zobrazení.
+V jazyku Scheme budeme například uvažovat primitivní proceduru navázanou na symbol random,
+která pro daný argument r jímž je přirozené číslo, vrací jedno z pseudo-náhodně vybraných nezáporných celých čísel,
+které je ostře menšínež r.
+Viz příklad:<code scheme>
+(random 5) ;⇒ 3
+
+(random 5) ;⇒ 2
+
+(random 5) ;⇒ 1
+
+(random 5) ;⇒ 3
+...</code>
+
+{{anchor:str57}}
+
+
+
+Pokud nyní budeme uvažovat proceduru, která ignoruje svůj jedinýargument
+a výsledek její aplikace závisína použití random,
+třeba proceduru vzniklou vyhodnocením (lambda (x) (+ 1 (random 10))),
+pak tuto proceduru nelze chápat jako zobrazení f : M → M i když výsledná hodnota je vrácena pro jakýkoliv argument.
+Předchozí procedura totiž může pro dva stejné argumenty vrátit různé výsledné hodnoty.
+
+Dobrou zprávou je, že na hodně procedur se lze dívat jako na zobrazení.
+K čemu je toto pozorování vůbec dobré?
+Pokud víme, že procedura se chová jako zobrazení,
+pak se při testování její funkčnosti můžeme soustředit pouze na hodnoty jejich argumentů a dané výsledky.
+Pokud pro danou n-tici argumentů procedura vracıóčekávaný výsledek,
+pak jej bude vždy vracet (pokud neprovedeme globální redefinici některého symbolu, který je volný v těle procedury),
+je přitom jedno, na jaké pozici se v programu procedura nacházínebo v jaké fázi výpočtu bude aplikována.
+Pohled na procedury jako na zobrazení (je-li to možné) je tedy důležitýz pohledu samotného programování.
+
+Pohled na proceduru jako na zobrazení (pokud je to možné) je významnou přidanou hodnotou.
+Procedury chovajícíse jako zobrazeníse snáze ladí a upravují.
+Při vytváření programu ve funkcionálním jazyku bychom se měli snažit tento pohled maximálně uplatňovat
+a omezit na minimum tvorbu procedur, které se jako zobrazenínechovají.
+Výhodou tohoto postupu je možnost ladit jednotlivé procedury po částech bez nutnosti provádět ladění
+v závislosti na pořadí aplikací, které by potenciálně během spuštění
+programu mohly nastat (což je někdy velmi těžkénebo dokonce nemožnézjistit).
+Pohled na procedury jako na zobrazení tedy v žádném případě není jen nějakou „nadbytečnou matematizací problému“.
+
+Na druhou stranu můžeme využít procedury k reprezentaci některých zobrazení.
+Například proceduru pro výpočet součtu čtverců z programu 2.1
+na straně 51 lze chápat jako proceduru přibližně reprezentujícízobrazení f : 2
+
+R → R, definované f (x, y) = x2 + y2.
+Slovo „přibližně“ je zde samozřejmě na místě, protože v počítači nelze zobrazit iracionálníčísla,
+takže bychom měli f chápat spíš jako zobrazení f : 2
+
+S → S kde
+
+S je množina čísel reprezentovatelných v jazyku Scheme.
+Stejně tak třeba zobrazení f : R → R definovaná předpisy f (x) = x2, f (x) = x+1 , f (x) = |x|, ...
+budou přibližně reprezentovatelná procedurami vzniklými 2 vyhodnocením:
+
+<code scheme>
+(lambda (x) (* x x))
+
+(lambda (x) (/ (+ x 1) 2))
+
+(lambda (x) (if (>= x 0) x (- x)))
+...</code>
+
+Ze středoškolské matematiky známe řadu praktických metod, jak na základě dané funkce f : R → R
+vyjádřit další funkci g : R → R.
+Jedním ze způsobů je například vyjádření funkce g „posunem“ funkce f po ose x nebo y.
+Podrobněji, je-li f : R → R funkce, pak pro každé k ∈ R definujeme funkce fX,k : R → R
+a fY,k : R → R tak, že pro každé x ∈ R položíme
+
+fX,k(x) = f (x − k),
+
+fY,k(x) = f (x) + k.
+
+Funkce fX,k reprezentuje funkci f posunutou o k podél osy x a funkce fY,k reprezentuje funkci f posunutou o k podél osy y.
+Na obrázku 2.5 (vlevo) je zobrazena část grafu funkce f dané předpisem f (x) = x2 (x ∈ R).
+
+Na témže obrázku uprostřed máme ukázky částí grafů funkcí fX,1 a fY,1, které jsou tím pádem dány předpisy fX,1(x) = (x − 1)2 a fY,1(x) = x2 + 1. Řadu dalších funkcí bychom mohli například vyrobit
+
+„násobením funkčních hodnot“. Pro každé m ∈ R a funkci f tedy můžeme uvažovat funkci f∗,m : R → R
+
+danou, pro každé x ∈ R, následujícím předpisem:
+
+f∗,m(x) = m · f (x).
+
+Na obrázku 2.5 (vpravo) máme zobrazeny funkce f∗,2 a f∗ příslušné funkci f (opět f(x) = x2).
+
+, 1
+
+2
+
+Z hlediska procedur vyšších řádů je toho vyjadřování „funkcí pomocí jiných funkcí“ zajímavé,
+protože můžeme snadno naprogramovat procedury,
+které budou z procedur reprezentující tato zobrazení vytvářet
+{{anchor:str58}}
+
+
+Obrázek 2.5. Vyjádření funkcí pomocí posunu a násobení funkčních hodnot.
+
+x2
+
+4
+
+x2
+
+4
+
+x2
+
+(x − 1)2
+
+x2 + 1
+
+4
+
+x2
+
+2x2
+
+2
+
+3
+
+3
+
+3
+
+2
+
+2
+
+2
+
+1
+
+1
+
+1
+
+1
+
+2
+
+3
+
+4
+
+1
+
+2
+
+3
+
+4
+
+1
+
+2
+
+3
+
+4
+
+Program 2.4. Procedury vytvářejícínové procedury pomocí posunu a násobení.
+
+<code scheme>
+(define x-shift
+  (lambda (f k)
+    (lambda (x)
+      (f (- x k)))))
+
+(define y-shift
+  (lambda (f k)
+    (lambda (x)
+      (+ k (f x)))))
+
+(define scale
+  (lambda (f m)
+    (lambda (x)
+      (* m (f x)))))</code>
+
+procedury reprezentujícínovázobrazení.
+Například trojice procedur uvedená v programu 2.4
+reprezentuje právě procedury vytvářejícínové procedury pomocí posunutí a násobku.
+Konkrétně procedura x-shift akceptuje jako argumenty proceduru (jednoho argumentu)
+a číslo a vracínovou proceduru vzniklou z předané procedury jejím „posunutím po ose x“ o délku danou číslem.
+Všimněte si, jak koresponduje tělo procedury x-shift s předpisem zobrazení fX,k.
+Analogicky procedura y-shift vrací proceduru „posunutou po ose y“
+a konečně procedura scale vrací procedury s „násobenými funkčními hodnotami“.
+
+Reprezentaci funkcízobrazených na obrázku 2.5 bychom mohli pomocí x-shift, y-shift a scale vyrobit následovně:
+
+<code scheme>
+(x-shift na2 1) ;⇒ „druhá mocnina posunutaó 1 na ose x“
+
+(y-shift na2 1) ;⇒ „druhá mocnina posunutaó 1 na ose y“
+
+(scale na2 2) ;⇒ „druhá mocnina násobená hodnotou 2“
+
+(scale na2 1/2) ;⇒ „druhá mocnina násobená hodnotou 1/2“</code>
+
+Takto vytvořené procedury bychom dále mohli třeba pojmenovat, nebo s nimi přímo pracovat:
+<code scheme>
+((x-shift na2 1) 1) ;⇒ 0
+
+((x-shift na2 1) 2) ;⇒ 1
+
+(define na2*1/2 (scale na2 1/2))
+
+(na2*1/2 1) ;⇒ 1/2
+
+(na2*1/2 2) ;⇒ 2</code>
+
+{{anchor:str59}}
+
+
+Obrázek 2.6. Různé polynomické funkce, skládání funkcí a derivace funkce.
+
+4
+
+3.5x
+
+x2
+
+x
+
+4
+
+f
+
+f ◦ g
+
+4
+
+g ◦ f
+
+3
+
+3
+
+3
+
+√
+
+2
+
+x
+
+2
+
+g
+
+2
+
+f
+
+1
+
+1
+
+1
+
+1
+
+f
+
+1
+
+2
+
+3
+
+4
+
+1
+
+2
+
+3
+
+4
+
+1
+
+2
+
+3
+
+4
+
+.
+
+.
+
+.
+
+√
+
+Řadu funkcí, jako například funkce dané předpisy f (x) = x (identita),
+f (x) = xn, f (x) = n x, f (x) = ax, f (x) = c (konstantní funkce)
+a jiné, lze chápat jako speciální případy funkce f : R → R definované
+
+f (x) = axn
+
+pro různé hodnoty parametrů a, n ∈ R. Grafy některých z těchto funkcí jsou zobrazeny na obrázku 2.6 (vlevo).
+
+Procedury reprezentující všechny tyto funkce (a řadu dalších) bychom mohli v programu vytvářet pomocnou procedurou,
+které bychom předávali pouze různé hodnoty parametrů a a n.
+Z hlediska technické realizace (naprogramování ve skutečném interpretu jazyka Scheme)
+bychom museli vyřešit pouze problém, jak vypočítat hodnotu xn.
+Ve standardu R6RS jazyka Scheme je k dispozici procedura expt,
+se dvěma argumenty základ a exponent, která počítá mocninu (danou exponentem) z daného základu.
+Proceduru pro vytváření procedur reprezentující výše uvedenázobrazení bychom tedy mohli vytvořit třeba tak,
+jak je to uvedeno v programu 2.5.
+Procedury reprezentující funkce z obrázku 2.6 (vlevo) bychom mohli vytvořit Program 2.5.
+Vytváření procedur reprezentujících polynomické funkce.
+
+<code scheme>
+(define make-polynomial-function
+  (lambda (a n)
+    (lambda (x) (* a (expt x n)))))</code>
+
+pomocí procedury make-polynomial-function vyhodnocením následujících výrazů:
+<code scheme>
+(make-polynomial-function 3.5 1) ;⇒ „procedura reprezentující f (x) = 3.5x“
+
+(make-polynomial-function 1 2) ;⇒ „procedura reprezentující f (x) = x2“
+
+(make-polynomial-function 1 1) ;⇒ „procedura reprezentující f (x) = x“
+
+(make-polynomial-function 1 1/2) ;⇒ „procedura reprezentující f (x) = sqrt(x)“
+
+(make-polynomial-function 1 0) ;⇒ „procedura reprezentující f (x) = 1“</code>
+
+Dalším typickým způsobem vyjadřování funkcí je skládání (kompozice) dvou (nebo více) funkcí do jedné.
+
+Z matematického hlediska je jednaó skládání dvou zobrazení.
+Jsou-li f : X → Y a g : Y → Z zobrazení, kde Y ⊆ Y ,
+pak definujeme zobrazení (f ◦ g) : X → Z tak, že pro každé x ∈ X klademe (f ◦ g)(x) = g(f (x)).
+
+Zobrazení f ◦ g se potom nazývá kompozice zobrazení f a g (v tomto pořadí).
+Předtím, než ukážeme program, který pro dvě procedury reprezentujícízobrazení
+vrací proceduru reprezentující jejich kompozici, upozorněme na některé důležité vlastnosti složených funkcí.
+
+Uvažujme neprázdnou množinu X a označme F(X) množinu všech zobrazeníz X do X
+(to jest zobrazení ve tvaru f : X → X).
+Pak pro složení libovolných dvou funkcí f, g ∈ F(X) platí f ◦ g ∈ F(X).
+Skládání funkcí „◦“ lze tedy chápat jako binárnıóperaci na množině F(X).
+{{anchor:str60}}
+Tato operace mánavíc dalšízajímavé vlastnosti.
+Označme ι identitu na X (to jest ι(x) = x pro každé x ∈ X).
+Pak platí: f ◦ (g ◦ h) = (f ◦ g) ◦ h, ι ◦ f = f ◦ ι = f , pro každé f, g, h ∈ F(X), což si můžete snadno dokázat sami.
+Skládánízobrazení je tedy asociativní a je neutrální vzhledem k identickému zobrazení.
+Z algebraického hlediska je struktura F(X), ◦, ι pologrupa s neutrálním prvkem neboli monoid.
+
+Asociativita (f ◦ (g ◦ h) = (f ◦ g) ◦ h) říká, že při skládání více funkcínezáležína jejich uzávorkování,
+místo f ◦ (g ◦ h) můžeme tedy bez újmy psát f ◦ g ◦ h, protože at’výraz uzávorkujeme jakkoliv, výsledné složení bude vždy jednoznačně dané.
+Upozorněme ale důrazně na fakt, že skládání funkcínení komutativní, nelze tedy zaměňovat pořadí,
+v jakém funkce skládáme (to jest obecně f ◦ g a g ◦ f nejsou stejnázobrazení).
+
+Příklad nekomutativity skládání funkcí je vidět na obrázku 2.6 (uprostřed). Neutralita vůči identitě (ι ◦ f =
+
+f ◦ ι = f ) říká, že složením funkce s identitou (a obráceně) obdržíme výchozí funkci. Operacím, které spolu s množinou na níž jsou definované a se svým neutrálním prvkem tvoří monoid, budeme dále říkat monoidálnıóperace a během dalších lekcí jich objevíme ještě několik.
+
+Nyní již slíbená procedura compose2, která provádí „složení dvou procedur“, viz program 2.6.
+Opět je vidět, že proceduru jsme naprogramovali pouze pomocí vhodné formalizace definičního vztahu f ◦ g v jazyku Scheme.
+Při programování můžeme navíc proceduru compose2 použít i s argumenty jimiž jsou
+Program 2.6. Kompozice dvou procedur.
+
+<code scheme>
+(define compose2
+
+  (lambda (f g)
+
+    (lambda (x)
+
+      (g (f x)))))
+</code>
+procedury nereprezentujícízobrazení (i když to asi nebude příliš účelné).
+V následující ukázce použití procedury compose2 jsou definovány procedury korespondující
+s grafy funkcí v obrázku 2.6 (uprostřed)
+a pomocícompose2 jsou vytvořeny procedury vzniklé jejich složením:
+<code scheme>
+(define f na2)
+
+(define g (make-polynomial-function 1/2 1))
+
+(define f*g (compose2 f g))
+
+(define g*f (compose2 g f))</code>
+
+Poslední ukázkou procedury vyššího řádu v této sekci bude procedura,
+které pro danou proceduru reprezentující funkci f : R → R
+bude vracet proceduru reprezentující přibližnou derivaci funkce f.
+Připomeňme, že derivace funkce f v daném bodě x je definována vztahem
+
+f (x + δ) − f (x)
+
+f (x) = lim
+
+.
+
+δ→0
+
+δ
+
+Pokud tedy v předchozím vztahu odstraníme limitní přechod a za δ zvolíme dost malé kladnéčíslo (blízko nuly),
+pak získáme odhad hodnoty derivace v bodě x:
+
+f (x + δ) − f (x)
+
+g(x) =
+
+.
+
+δ
+
+Z geometrického pohledu je hodnota g(x) směrnicísečny (tangens úhlu, kterýsvírásečna s osou x),
+která prochází v grafu funkce body ([x, f (x)] a [x + δ, f (x + δ)]).
+Jako funkci přibližné derivace funkce f tedy můžeme považovat funkci g (roli samozřejmě hraje velikost δ).
+Program 2.7 ukazuje proceduru smernice, která pro danou proceduru (reprezentující f )
+a dvě číselné hodnoty (reprezentující hodnoty x1, x2) vracísměrnici sečny procházející body [x1, f (x1)]
+a [x2, f (x2)].
+Procedura derivace akceptuje jako argument proceduru (reprezentujícıópět f )
+a hodnotu δ určující přesnost.
+Jako výsledek své aplikace procedura vrací proceduru jednoho argumentu reprezentující přibližnou derivaci,
+viz program 2.7 a předchozí diskusi.
+
+√
+
+Následující kód ukazuje vytvoření procedury
+reprezentující přibližnou funkci derivace funkce f (x) = x s přesností δ = 0.001 a její použití.
+Funkce a její derivace jsou zobrazeny na obrázku 2.6 (vpravo).
+
+{{anchor:str61}}
+
+Program 2.7. Přibližná směrnice tečny a přibližná derivace.
+
+<code scheme>
+(define smernice
+  (lambda (f a b)
+    (/ (- (f b) (f a))
+       (- b a))))
+
+(define derivace
+  (lambda (f delta)
+    (lambda (x)
+      (smernice f x (+ x delta)))))
+
+(define f-deriv
+  (derivace sqrt 0.001))
+
+(f-deriv 0.01) ;⇒ 4.8808848170152
+
+(f-deriv 0.1) ;⇒ 1.5772056245761
+
+(f-deriv 0.5) ;⇒ 0.70675358090799
+
+(f-deriv 2) ;⇒ 0.3535092074645
+
+(f-deriv 4) ;⇒ 0.24998437695292</code>
+
+V této sekci jsme ukázali, že některé procedury lze chápat jako zobrazení a jiné procedury tak chápat nemůžeme.
+Poukázali jsme na výhody toho, když se procedury chovají jako zobrazení a ukázali jsme,
+jak lze zobrazení reprezentovat (nebo přibližně reprezentovat) pomocí procedur.
+
+
+
+
+
+{{anchor:s2_6}}
+======= 2.6 Lexikální a dynamický rozsah platnosti =======
+V této sekci se ještě na skok vrátíme k prostředím a hledání vazeb symbolů.
+V předchozích sekcích jsme představili aplikaci uživatelsky definovaných procedur,
+která spočívala ve vyhodnocení jejich těla v novém lokálním prostředí.
+Každé lokální prostředí vytvořené při aplikaci procedury mělo jako svého předka nastaveno prostředí vzniku procedury.
+Všimli jsme si, že to bezprostředně vede k tomu, že pokud není vazba symbolu (uvedeného v těle procedury)
+nalezena v lokálním prostředí procedury, pak je hledána v prostředí vzniku této procedury.
+Prostředí vzniku procedury je buď globální prostředí nebo se jedná o lokální prostředí jiné procedury
+(tato procedura musí být zřejmě procedura vyššího řádu, protože v nínaše výchozí procedura vznikla).
+Pokud není symbol nalezen ani v tomto prostředí, je opět hledán v prostředí předka.
+
+Zde opět může nastat situace, že se jednaó globální prostředí nebo o lokální prostředínějaké procedury vyššího řádu, ...
+
+Důležitým faktem je, že vazby symbolů, které nejsou nalezeny v lokálním prostředí,
+se postupně hledají v prostředích vzniku procedur.
+Pokud programovací jazyk používá tento princip hledání vazeb symbolů,
+pak říkáme, že programovací jazyk používá lexikální (statický) rozsah platnosti symbolů
+(ve mnoha jazycích se ovšem místo pojmu „symbol“ používá pojem „proměnná“).
+Prostředí vzniku procedury se v terminologii spojené s lexikálním rozsahem platnosti
+nazývá obvykle lexikálně nadřazené prostředí.
+Takže bychom mohli říct, že lexikální rozsah platnosti spočívá v hledání vazeb symbolů
+(které nejsou nalezeny v lokálním prostředí) v lexikálně nadřazených prostředích.
+
+Lexikální rozsah platnosti není jediným možným rozsahem platnosti.
+Programovací jazyky mohou stanovit i jiný typ hledání vazeb symbolů.
+Druhým typem rozsahu platnosti je dynamický rozsah platnosti, který je v současnosti prakticky nepoužívaný.
+Stručně bychom mohli říci, že „jedinou odlišností“ od předchozího modelu je,
+že pokud není vazba symbolu nalezena v lokálním prostředí procedury,
+pak je hledána v prostředıódkud byla procedura aplikována.
+{{anchor:str62}}
+Prostředí, ve kterém byla procedura aplikována, můžeme nazvat dynamicky nadřazené prostředí.
+Před další diskusí výhod a nevýhod obou typů rozsahů platnosti ukážeme příklad,
+na kterém bude jasně vidět odlišnost obou typů rozsahů platnosti.
+
+Příklad 2.18. Uvažujme proceduru uvedenou v programu 2.3 na straně 53 a představme si,
+že v globálním prostředí provedeme navíc tuto definici:
+<code scheme>
+(define c 100)</code>
+
+Co se stane, pokud dáme vyhodnotit následující dva výrazy?
+<code scheme>
+(define f (curry+ 10))
+
+(f 20) ;⇒ ???</code>
+
+Odpověď v případě lexikálního rozsahu již máme: 30, viz diskusi v [[L2#s2_4|sekci 2.4]] k programu 2.3.
+Kdyby náš interpret ale používal dynamický rozsah platnosti, situace by byla jiná.
+Proceduru navázanou na symbol f jsme totiž aplikovali v globálním prostředí.
+Tím pádem bychom se při vyhodnocení jejího těla (+ x c) dostali do situace,
+kdy by byla vazba symbolu c (kteránení k dispozici v lokálním prostředí) hledána v dynamicky nadřazeném prostředí,
+to jest v prostředí aplikace procedury = v globálním prostředí.
+V tomto prostředí má ale symbol c vazbu 100,
+takže výsledkem aplikace procedury navázanéna f s argumentem 20 by bylo číslo 120.
+Dostali jsme tedy jiný výsledek než v případě lexikálního rozsahu platnosti.
+
+Lexikální a dynamický rozsah platnosti se od sebe liší ve způsobu hledání vazeb symbolů,
+pokud tyto vazby nejsou nalezeny v lokálním prostředí procedury.
+Při použití lexikálního rozsahu platnosti jsou vazby nenavázaných symbolů hledány
+v prostředí vzniku procedur (lexikálně nadřazeném prostředí).
+
+Při použití dynamického rozsahu platnosti jsou vazby nenavázaných symbolů hledány
+v prostředí aplikace procedur (dynamicky nadřazeném prostředí).
+Většina vyšších programovacích jazyků, včetně jazyka Scheme, používá lexikální rozsah platnosti.
+
+Poznámka 2.19. Lexikální rozsah platnosti máz pohledu programátora a tvorby programů mnohem lepší vlastnosti.
+Předně, každá procedura má jednoznačně určené své lexikálně nadřazené prostředí.
+Toto prostředí můžeme kdykoliv jednoduše určit pouhým pohledem na strukturu programu.
+Podíváme se, ve které části programu je umístěn λ-výraz,
+jehož vyhodnocením procedura vznikne a pak stačí zjistit uvnitř které procedury se tento λ-výraz nachází.
+Pro jednoduchost můžeme na chvíli „ztotožnit procedury s λ-výrazy“, jejichž vyhodnocením vznikají,
+a „ztotožnit prostředíse seznamy formálních argumentů“ uvedených v λ-výrazech.
+Pro nalezení lexikálně nadřazeného prostředínám stačí k danému λ-výrazu přejít k nejvnitřněj-šímu λ-výrazu,
+který výchozí λ-výraz obsahuje.
+Ze seznamu formálních argumentů pak lze vyčíst,
+zdali bude vazba symbolu nalezena v prostředí aplikace procedury vzniklé vyhodnocením tohoto λ-výrazu,
+nebo je potřeba hledat v (dalším) nadřazeném prostředí.
+Například v případě následujícího programu
+<code scheme>
+(lambda (x y)
+  (lambda (z a)
+    (lambda (d)
+      (+ d a y b))))
+</code>
+bychom mohli vyčíst, že při aplikaci poslední vnořené procedury by v prostředí jejího lexikálního předka existovaly vazby symbolů z a a (v lokálním prostředísamotné procedury je k dispozici symbol d).
+V prostředí lexikálního předka jejího lexikálního předka by existovaly vazby symbolů x a y.
+Konkrétní hodnoty vazeb samozřejmě z programu vyčíst nemůžeme, ty budou známé až při aplikaci (během výpočetního procesu), ale program (sám o sobě) nám určuje strukturu prostředí.
+To je velkou výhodou lexikálního rozsahu platnosti.
+Naproti tomu při dynamickém rozsahu platnosti je struktura prostředí dána až samotným výpočet-ním procesem.
+Jelikož navíc tatáž procedura může být aplikována na více místech v programu,
+dynamicky nadřazené prostředínení určeno jednoznačně.
+Vezmeme-li kód z příkladu 9.18 a přidáme-li k němu výraz
+<code scheme>
+((lambda (c)
+   (f 20))
+ 1000)
+</code>
+{{anchor:str63}}
+
+pak při jeho vyhodnocení dojde k aplikaci procedury navázanéna f s hodnotou 20,
+ale tentokrát bude prostředím aplikace této procedury lokální prostředí procedury vytvořené
+při aplikaci procedury vznikající vyhodnocením vnějšího λ-výrazu.
+V tomto prostředí bude na symbol c navázána hodnota 1000, takže procedura f nám dáse stejným argumentem jiný výsledek (konkrétně 1020), než kdybychom ji zavolali v globálním prostředí, jak to bylo původně v příkladu 2.18.
+Z hlediska programátora je to silně nepřirozené,
+tatáž procedura aplikovanána různých místech programu vrací různé hodnoty.
+To klade na programátora velkénároky při programování a hlavně při ladění programu (a případném hledáníchyb).
+Pro danou proceduru totiž musí uvažovat, kdy a kde může být v programu aplikována.
+Ve velkých programech může být takových míst velké množství.
+Mnohem větším problémem ale je, že všechna místa aplikace obecně ani není možnézjistit (důvody nám budou jasnější v dalších lekcích).
+
+Pokud bychom chtěli (z nějakého důvodu)
+v našem abstraktním interpretu zavé st dynamický rozsah platnosti místo lexikálního,
+stačilo by uvažovat uživatelsky definovatelné procedury pouze jako elementy tvořené dvojicí ve tvaru parametry , tělo .
+Prostředí vzniku procedury by si již nebylo potřeba pamatovat.
+Aplikaci procedury bychom museli uvažovat relativně k prostředí Pa, ve kterém ji chceme prové st
+(při lexikálním rozsahu jsme naopak informaci o prostředí, ve kterém byla procedura aplikována nepotřebovali).
+To jest v podobném duchu jako jsme rozšířili „Eval“ představený v první lekci o dodatečný parametr reprezentující prostředí, museli bychom nyní rozšířit Apply o další argument reprezentující prostředí – v tomto případě prostředí aplikace procedury.
+Dále bychom potřebovali upravit bod (4) definice 2.12 na straně 50
+
+následovně:
+
+(3) Nastavíme předka Pl na Pa (předkem nového prostředí je prostředí aplikace procedury E).
+
+Dále bychom upravili „Eval“, viz definici 3.7 na straně 48, v bodech (C.1) a (C.2) tak,
+aby se při každé aplikaci předávala informace o prostředí Pa, ve kterém aplikaci provádíme.
+
+Poznámka 2.20. (a) Implementace dynamického rozsahu platnosti je jednoduššínež implementace lexikálního rozsahu platnosti.
+Proto byl dynamický rozsah platnosti populární v rané fázi vývoje interpretů a překladačů programovacích jazyků.
+Programovánís dynamickým rozsahem platnosti však vede k čas-tému vzniku chyb
+(programátor se musíneustále zamýšlet nad tím, odkud bude daná procedura volána a jaké je potřeba mít v daném prostředí vazby symbolů)
+a proto jej v současnosti nevyužíváskoro žádný programovací jazyk
+(jedním z mála vyšších programovacích jazyků s dynamickým rozsahem platnosti, který je v praxi používán, je programovací jazyk FoxPro).
+
+(b) V jazyku Common LISP existuje možnost deklarovat proměnnou jako „dynamickou.“
+Z úhlu pohledu naší terminologie to znamená,
+že jazyk umožňuje hledat vazby nejen podle lexikálního rozsahu platnosti (který je standardní),
+ale u speciálně deklarovaných proměnných i podle dynamického rozsahu platnosti.
+
+Jedná se o jeden z mála jazyků (pokud ne jediný) umožňující v jistém smyslu využívat oba typy rozsahů.
+
+
+{{anchor:s2_7}}
+
+
+======= 2.7 Další podmíněné výrazy =======
+V této sekci ukážeme další prvky jazyka Scheme,
+které nám budou sloužit k vytváření složitějších podmínek a složitějších podmíněných výrazů.
+Připomeňme, že podmíněné vyhodnocování jsme dělali pomocíspeciální formy if,
+viz definici 1.31 na straně 36.
+Při podmíněném vyhodnocování výrazů hraje důležitou roli samotná podmínka.
+Doposud jsme používali pouze jednoduché podmínky.
+V mnoha případech se však hodí konstruovat složitější podmínky pomocí vazeb
+jako „platí ... a platí ... “ (konjunkce podmínek),
+„platí ... nebo platí ... “ (disjunkce podmínek), „neplatí, že ... “ (negace podmínky).
+Nyní ukážeme, jak budeme vytvářenísložitějších podmínek provádět v jazyku Scheme.
+
+Jazyk Scheme má k dispozici proceduru navázanou na symbol not.
+Tato procedura jednoho argumentu vrací výsledek negace pravdivostní hodnoty reprezentované svým argumentem.
+Přesněji řečeno, pokud je předaným argumentem #f, pak je výsledkem aplikace not pravdivostní hodnota #t.
+Pokud je argumentem jakýkoliv element různyód #f, pak je výsledkem aplikace not pravdivostní hodnota #f.
+Procedura not tedy pro libovolnýelement vrací buď #f nebo #t.
+{{anchor:str64}}
+Viz příklady:
+<code scheme>
+(not #t) ;⇒ #f
+
+(not #f) ;⇒ #t
+
+(not 0) ;⇒ #f
+
+(not -12.5) ;⇒ #f
+
+(not (lambda (x) (+ x 1))) ;⇒ #f
+
+(not (<= 1 2)) ;⇒ #f
+
+(not (> 1 3)) ;⇒ #t
+</code>
+Procedura not tedy provádínegaci pravdivostní hodnoty, přitom pravdivostní hodnota je brána v zobecněném smyslu – vše kromě #f je považováno za „pravdu“.
+Viz komentář v [[L1#s1_7|sekci 1.7]].
+Pozorným čtenářům zřejmě neuniklo, že procedura not je plně definovatelná.
+Viz program 2.8.
+Proceduru not bychom
+Program 2.8. Procedura negace.
+
+<code scheme>
+(define not
+  (lambda (x)
+    (if x #f #t)))</code>
+
+tedy nemuseli mít v jazyku Scheme dánu jako primitivní proceduru, ale mohli bychom ji dodatečně vytvořit.
+Na následujícím příkladu je vidět,
+že při práci s pravdivostními hodnotami v zobecněném smyslu platí „zákon dvojínegace“
+(dvojicínegací výchozí pravdivostní hodnoty získáme tutéž pravdivostní hodnotu ve zobecněném smyslu),
+ale „pravda“ může být reprezentována vzájemně různými elementy
+(dvojí aplikacínot tedy obecně nezískáme tentýž element):
+<code scheme>
+(not (not #f)) ;⇒ #f
+
+(not (not #t)) ;⇒ #t
+
+(not (not -12.5)) ;⇒ #t</code>
+
+V programu 2.9 jsou uvedeny příklady definic dvou predikátů.
+Připomeňme, že za predikáty považujeme procedury, které pro dané argumenty vracejí buď #f nebo #t.
+Predikát even? představuje predikát „je dané
+
+Program 2.9. Predikáty sudých a lichých čísel.
+
+<code scheme>
+(define even?
+  (lambda (z)
+    (= (modulo z 2) 0)))
+
+(define odd?
+  (lambda (z)
+    (not (even? z))))</code>
+
+číslo sude?“, predikát odd? představuje predikát „je danéčíslo liché?“.
+V těle predikátu even? je výraz vyjadřující podmínku,
+že číslo je sudé, právě když je jeho zbytek po děleníčíslem 2 roven nule.
+Predikát odd? jsme naprogramovali pomocínegace a predikátu even?. Viz použití predikátů:
+
+<code scheme>
+(even? 10) ;⇒ #t
+
+(odd? 10) ;⇒ #f
+
+(odd? 10.2) ;⇒ „CHYBA: Argument musí být celéčíslo.“</code>
+
+Při vyhodnocení posledního výrazu způsobila aplikace procedury modulo chybové hlášení – prvním oče-kávaným argumentem mělo být celéčíslo.
+Při psaní uživatelsky definovatelných predikátů (respektive, při jejich pojmenování) přijímáme následující konvenci,
+kterou jsme už použili i v programu 2.9.
+
+Úmluva 2.21 (o pojmenovávání predikátů).
+Pokud budou nově vytvořené predikáty navázanéna symboly v globálním prostředí,
+pak budeme v jejich jménu na konci psát znak otazník „?“.
+
+{{anchor:str65}}
+K vytvářenísložených podmínek ve tvaru konjunkce sloužíspeciální forma and:
+
+Definice 2.22 (speciální forma and).
+Speciální forma and se používás libovolným počtem argumentů: (and test1 ··· testn ), kde n ≥ 0.
+Speciální forma and při sve áplikaci postupně vyhodnocuje výrazy test1 ... testn v aktuálním prostředí
+a to v pořadízleva doprava.
+Pokud se průběžně vyhodnocovaný výraz testi vyhodnotína nepravdu (to jest #f),
+pak je výsledkem aplikace speciální formy and hodnota #f a další argumenty testi+1 , ... , textn uvedenéza průběžně vyhodnocovaným argumentem se již nevyhodnocují.
+Pokud se postupně všechny výrazy test1 , ... , testn vyhodnotína pravdu (hodnotu různou od #f),
+pak je jako výsledek aplikace speciální formy and vrácena hodnota vyhodnocení posledního výrazu.
+Pokud n = 0 (and byla aplikována bez argumentů), pak je vrácena hodnota #t.
+
+Následující příklady ukazují použitíspeciální formy and.
+Neformálně řečeno, výsledkem aplikace speciální formy and je „pravda“,
+pokud se postupně všechny její argumenty vyhodnotína pravdu.
+Pokud tomu tak není, je výsledkem aplikace „nepravda“.
+Navíc platí, že všechny argumenty vyskytujícíse za argumentem jenž se vyhodnotil na nepravdu se již nevyhodnocují.
+
+<code scheme>
+(and (= 0 0) (odd? 1) (even? 2)) ;⇒ #t
+
+(and (= 0 0) (odd? 1) (even? 2) 666) ;⇒ 666
+
+(and 1 #t 3 #t 4) ;⇒ 4
+
+(and 10) ;⇒ 10
+
+(and +) ;⇒ „procedura sčítání“
+
+(and) ;⇒ #t
+
+(and (= 0 0) (odd? 2) (even? 2)) ;⇒ #f
+
+(and 1 2 #f 3 4 5) ;⇒ #f</code>
+
+V následujícím případu je vidět, že and skutečně řídí vyhodnocovánísvých argumentů tak, jak bylo řečeno v definici 2.22.
+Kdyby byl and procedura (a ne speciální forma),
+pak by při vyhodnocenínásledujícího výrazu došlo k chybě, protože symbol nenavazany-symbol by neměl vazbu.
+<code scheme>
+(and (= 0 0) 2 #f nenavazany-symbol) ;⇒ #f
+</code>
+V našem případě ale k chybě nedochází, protože k vyhodnocenísymbolu nenavazany-symbol nedojde.
+
+Zpracování svých argumentů speciální forma and ukončí jakmile narazína třetí argument jenž se vyhodnotína nepravdu.
+
+Všimněte si, že speciální formu and je možné aplikovat i bez argumentu,
+v tom případě je konstantně vracena pravda (element #t).
+V [[L1#s1_5|sekci 1.5]] jsme vysvětlili, co a proč vracejí procedury + a * pokud jsou aplikovány bez argumentů.
+Ưvahu u speciální formy and bychom mohli udělat analogicky.
+Speciální forma and vrací #t, pokud je aplikována bez argumentů,
+protože #t se chováneutrálně vzhledem k pravdivostní funkci spojky „konjunkce“ (v logice obvykle značené ∧):
+
+#t ∧ p = p ∧ #t = p.
+
+To jest výraz
+
+p1 ∧ p2 ∧ · · · ∧ pn
+
+je ekvivalentní výrazu:
+
+p1 ∧ p2 ∧ · · · ∧ pn ∧ #t.
+
+Když v posledním výrazu odstraníme všechny p1, ... , pn, zbude nám #t,
+což je pravdivostní hodnota kterou chápeme jako „konjunkci žádných argumentů“.
+
+Následující predikát within? ukazuje praktické použitíspeciální formy and.
+Jednáse o predikát tří argumentů testující,
+zdali první argument leží v uzavřeném intervalu vymezeném dvěma dalšími argumenty:
+<code scheme>
+(define within?
+  (lambda (x a b)
+    (and (>= x a) (<= x b))))</code>
+
+{{anchor:str66}}
+Nezkušení programátoři jsou někdy v pokušení psát místo předchozího programu následující:
+<code scheme>
+(define within?
+  (lambda (x a b)
+    (if (and (>= x a) (<= x b))
+      #t
+      #f)))</code>
+
+Z hlediska funkčnosti jde o totéž, v druhém případě se ale v programu vyskytuje jeden zbytečnýif,
+což snižuje jeho čitelnost.
+Psát speciální formu if ve tvaru (if test #t #f) je skutečně zbytečné,
+protože pokud je vyhodnocen test na pravdu, je vrácena „pravda“ a v opačném případě,
+tedy pokud se test vyhodnotil na nepravdu, je vrácena „nepravda“.
+Úplně tedy stačí do programu uvést samotný test .
+
+Ke speciální formě and ještě dodejme, že tato speciální forma je v našem jazyku také v podstatě nadbytečná,
+protože výraz ve tvaru
+<code>(and test1 ··· testn )</code>
+
+bychom mohli nahradit několika vnořenými if-výrazy:
+
+<code scheme>
+(if test1
+  (if test2
+    (if ···
+      (if
+	testn−1
+	testn
+	#f)
+      ...
+      #f)
+    #f)
+  #f)
+</code>
+Z hlediska programátora je však použití and samozřejmě mnohem příjemnější a čitelnější.
+
+K vytváření složených podmínek ve tvaru disjunkce slouží speciální forma or:
+Definice 2.23 (speciální forma or).
+Speciální forma or se používás libovolným počtem argumentů: (or test1 · · · testn ), kde n ≥ 0.
+Speciální forma or při své aplikaci postupně vyhodnocuje výrazy test1 , ... , testn v aktuálním prostředí
+a to v pořadízleva doprava.
+Pokud se průběžně vyhodnocovaný výraz testi vyhodnotína pravdu (to jest cokoliv kromě #f),
+pak je výsledkem aplikace speciální formy or hodnota vzniklá vyhodnocením testi a další argumenty testi+1 , ... , textn uvedenéza průběžně vyhodnocovaným argumentem se již nevyhodnocují.
+Pokud se postupně všechny výrazy test1 , ... , testn vyhodnotína nepravdu (to jest #f),
+pak je jako výsledek aplikace speciální formy or vrácena hodnota #f.
+Pokud n = 0 (or byla aplikována bez argumentů), pak je rovněž vrácena hodnota #f.
+
+Viz příklady použití speciální formy or:
+<code scheme>
+(or (even? 1) (= 1 2) (odd? 1)) ;⇒ #t
+
+(or (= 1 2) (= 3 4) 666) ;⇒ 666
+
+(or 1 #f 2 #f 3 4) ;⇒ 1
+
+(or (+ 10 20)) ;⇒ 30
+
+(or) ;⇒ #f
+
+(or #f) ;⇒ #f
+
+(or #f (= 1 2) #f) ;⇒ #f</code>
+
+Speciální forma or bez argumentu vrací #f,
+protože #f se chová neutrálně vzhledem k pravdivostní funkci spojky „disjunkce“ (v logice obvykle značené ∨):
+
+#f ∨ p = p ∨ #f = p,
+
+můžeme tedy aplikovat analogickou úvahu jako v případě and, + nebo *.
+Speciální forma or řídí vyhodnocovánísvých argumentů, nemůže se tedy jednat o proceduru.
+
+{{anchor:str67}}
+Jako příklad si můžeme uvé st následující kód:
+<code scheme>
+(or (even? 2) nenavazany-symbol) ;⇒ #t</code>
+
+při jehož vyhodnocení by v případě, pokud by byla or procedura, nastala chyba.
+V našem případě je však vrácena hodnota #t, což je výsledek vyhodnocení (even? 2)
+a argument nenavazany-symbol již vyhodnocen nebude.
+Výsledkem aplikace speciální formy or je „nepravda“, pokud se postupně všechny její argumenty vyhodnotína nepravdu.
+Pokud tomu tak není, je výsledkem aplikace výsledek vyhodnocení prvního argumentu, kterýse nevyhodnotil na „pravdu.
+Všechny argumenty vyskytujícíse za argumentem jenž se vyhodnotil na pravdu se dál nevyhodnocují.
+
+Následující procedura je praktickou ukázkou užitíspeciální formy or.
+Jednáse o predikát overlap?, který pro dva uzavřeneíntervalu [a, b] a [c, d],
+jejichž krajní prvky jsou dány čtyřmi argumenty, testuje, zdali se tyto intervalu vzájemně překrývají,
+tedy jestli platí [a, b] ∩ [c, d] = ∅.
+
+<code scheme>
+(define overlap?
+  (lambda (a b c d)
+    (or (within? a c d)
+	(within? b c d)
+	(within? c a b)
+	(within? d a b))))</code>
+
+V tomto případě nám hned „matematický popis“ vzájemného překrytínebyl při psaní procedury moc platný.
+Snadno ale nahlédneme, že [a, b] ∩ [c, d] = ∅, právě když platí aspoň jedna z podmínek:
+a ∈ [c, d], b ∈ [c, d], c ∈ [a, b] a d ∈ [a, b], což je právě podmínka formalizovaná v těle předchozí procedury.
+
+Stejně jako v případě and bychom mohli výraz
+
+(or test1 · · · testn )
+
+nahradit vnořenými výrazy ve tvaru:
+
+<code scheme>
+(if
+  test1
+  test1
+  (if
+    test2
+    test2
+    (if · · ·
+      (if
+	testn
+	testn
+	#f) · · · )))
+</code>
+Z čistě funkcionálního pohledu, o kterýse v tomto díle učebního textu budeme snažit,
+jsou předchozí dva kódy skutečně ekvivalentní.
+V dalším díle tohoto textu však uvidíme,
+že v případě zavádění imperativních prvků do našeho jazyka (prvků vyskytujících se v procedurálních jazycích),
+již bychom tento přepis nemohli provést.
+Zatím se ale s ním můžeme plně spokojit.
+
+K speciálním formám and a or ještě podotkněme, jaký je jejich vztah k pravdivostním funkcím logických spojek „konjunkce“ a „disjunkce“.
+Vzhledem k tomu, že nepracujeme pouze s pravdivostními hodnotami #f a #t,
+naše formy se chovají poněkud jinak než výše uvedené pravdivostní funkce používané v logice.
+
+Pravdivostní funkce konjunkce a disjunkce například splňují De Morganovy zákony z nichž nám plyne,
+že disjunkci lze vyjádřit pomocí konjunkce a negace a analogicky konjunkci lze vyjádřit pomocí disjunkce a negace:
+
+p1 ∨ · · · ∨ pn = ¬(¬p1 ∧ · · · ∧ ¬pn),
+
+p1 ∧ · · · ∧ pn = ¬(¬p1 ∨ · · · ∨ ¬pn).
+
+Přepíšeme-li levé a pravé strany předchozích výrazů v notaci jazyka Scheme
+a zamyslíme-li se nad hodnotami vzniklými jejich vyhodnocením,
+pak uvidíme, že vyhodnocením mohou vzniknout různeélementy, kupříkladu:
+
+<code scheme>
+(or 1 2 3) ;⇒ 1
+
+(and 1 2 3) ;⇒ 3
+
+(not (and (not 1) (not 2) (not 3))) ;⇒ #t
+
+(not (or (not 1) (not 2) (not 3))) ;⇒ #t</code>
+
+{{anchor:str68}}
+
+Dvojice elementů vzniklých vyhodnocením levé a pravé strany předchozích vztahů
+ale vždy reprezentují pravdu (v zobecněném smyslu), nebo jsou oboje rovny #f (zdůvodněte si proč).
+
+Nyní si ukážeme aplikaci procedur vyšších řádů.
+Předpokládejme, že máme naprogramovat procedury dvou argumentů min a max,
+které budou pro dané dva číselné argumenty vracet menší, případně vetší, hodnotu z nich.
+Takové procedury můžeme snadno naprogramovat třeba tak, jak je to uvedeno v programu 2.10.
+Již při letmém pohledu na obě proceduru nás jistě napadne, že vypadají „téměř shodně“
+
+Program 2.10. Procedury vracející minumum a maximum ze dvou prvků.
+
+<code scheme>
+(define min
+  (lambda (x y)
+    (if (<= x y) x y)))
+
+(define max
+  (lambda (x y)
+    (if (>= x y) x y)))</code>
+
+a lišíse pouze v použití (procedur navázaných na) „<=“ a „>=“,
+to jest procedur pro porovnáváníčísel-ných hodnot.
+V takovém okamžiku se nabízízobecnit program v tom smyslu, že vytvoříme abstraktní proceduru vyššího řádu,
+která bude vytvářet procedury pro vracení „extrémního prvek ze dvou“.
+To, co budeme mít na mysli pod pojmem „extrémní prvek“,
+budeme vytvářející proceduře specifikovat pomocí jejího argumentu.
+Podívejte se nynína program 2.11. V něm je definována procedura extrem jednoho argumentu.
+
+Program 2.11. Procedura vyššího řádu pro hledání extrémních hodnot.
+<code scheme>
+(define extrem
+  (lambda (f)
+    (lambda (x y)
+      (if (f x y) x y))))
+
+(define min (extrem <=))
+
+(define max (extrem >=))
+</code>
+Tímto argumentem je predikát, který bude použit na otestování, zdali jedna číselná hodnota je „extrémnější “ vůči druhé.
+Tělem procedury extrem je λ-výraz (lambda (x y) (if (f x y) x y)) jehož vyhodnocením vzniká procedura dvou argumentů.
+Tato procedura při své aplikaci vyhodnocuje tělo, v němž se nachází podmíněný výraz.
+V něm je nejprve vyhodnocena podmínka (f x y), která je pravdivá, právě když procedura navázanána f vrátí „pravdu“ pro argumenty se kterými byla zavolána procedura vrácená procedurou extrem.
+Pokud bude na f navázána procedura „menšínebo rovno“,
+pak se bude procedura vrácená procedurou extrem chovat stejně jako procedura min z programu 2.10.
+Pokud bude na f navázána procedura „většínebo rovno“, pak se bude procedura vrácená procedurou extrem chovat stejně
+jako procedura max z programu 2.10.
+Procedury min a max tedy můžeme získat voláním extrem a navázat je na příslušné symboly tak, jako v programu 2.11.
+
+Procedura extrem nám však umožňuje vytvářet mnohé další procedury pro vracení význačných prvků, což nám oproti prostému minimu a maximu ze dvou dávánové, předtím netušené, možnosti.
+<code scheme>
+(define abs
+  (lambda (x)
+    (if (>= x 0)
+      x
+      (- x))))</code>
+{{anchor:str69}}
+
+Pomocí procedury pro výpočet absolutní hodnoty
+kterou jsme již dříve uvedli, bychom mohli definovat dvě nové procedury absmin a absmax,
+které budou vracet prvek, který má menšínebo větší absolutní hodnotu:
+
+<code scheme>
+(define absmin
+  (extrem (lambda (x y)
+	    (<= (abs x) (abs y)))))
+
+(define absmax
+  (extrem (lambda (x y)
+	    (>= (abs x) (abs y)))))
+</code>
+Rozdíl mezi min a absmin (případně mezi max a abmax) je zřejmý:
+<code scheme>
+(min -20 10) ;⇒ -20
+
+(absmin -20 10) ;⇒ 10</code>
+
+Analogicky bychom mohli vytvořit další procedury.
+
+Speciální forma if byla představena již v předchozí lekci, viz definici 1.31 na straně 36.
+Nyní představíme speciální formu cond, pomocí které lze jednodušeji zapisovat složitější podmíněné výrazy.
+Speciální forma cond se používá ve tvaru:
+
+Definice 2.24 (speciální forma cond).
+<code scheme>
+(cond ( test1 důsledek1 )
+      ( test2 důsledek2 )
+      ...
+      ( testn důsledekn )
+      (else náhradník ))</code>
+
+kde n ≥ 0 a poslední výraz v těle, to jest výraz (else náhradník ) je nepovinnýa nemusí být uveden.
+Při své aplikaci postupně speciální forma cond vyhodnocuje (v aktuálním prostředí)
+výrazy test1 , ... , testn do toho okamžiku, až narazín a první testi,
+kterýse vyhodnotil na pravdu (na cokoliv kromě #f).
+V tom případě se vyhodnocování dalších testi+1 , ... , testn neprovádí
+a výsledkem aplikace speciální formy je hodnota vzniklá vyhodnocením výrazu důsledeki v aktuálním prostředí.
+Pokud se ani jeden z výrazů test1 , ... , testn nevyhodnotil na pravdu pak mohou nastat dvě situace.
+Pokud je posledním argumentem výraz ve tvaru (else náhradník ),
+pak je výsledkem aplikace speciální formy hodnota vzniklá vyhodnocením výrazu náhradník v aktuálním prostředí.
+Pokud náhradník není přítomen, pak je výsledkem aplikace speciální formy cond nedefinovaná hodnota,
+viz poznámku 1.27 (b) na straně 34.
+
+Z tvaru, ve kterém se používáspeciální forma cond lze jasně vyčíst,
+že by nemohla být zastoupena procedurou, například totiž
+<code scheme>
+(cond (1 2)) ;⇒ 2,</code>
+
+kdyby byla cond procedura, vyhodnocení předchozího výrazu by končilo chybou.
+Před uvedením praktických příkladů si nejprve ukažme některé mezní případy použitícond.
+V následujícím případě se neuplatní else-větev:
+<code scheme>
+(cond ((= 1 1) 20)
+      (else 10)) ;⇒ 20
+</code>
+
+Stejně tak, jako by se neuplatnila v tomto případě:
+<code scheme>
+(cond ((+ 1 2) 20)
+
+      ((= 1 1) 666)
+
+      (else 10)) ;⇒ 20</code>
+
+Zde už se větev uplatní:
+<code scheme>
+(cond ((= 1 2) 20)
+      (else 10)) ;⇒ 10</code>
+{{anchor:str70}}
+Všimněte si, že else-větev (else náhradník ) bychom mohli
+ekvivalentně nahradit výrazem ve tvaru ( test náhradník ),
+ve které by se test vyhodnotil vždy na „pravda“ (cokoliv kromě #f).
+Třeba takto:
+<code scheme>
+(cond ((= 1 2) 20)
+      (#t 10)) ;⇒ 10</code>
+
+Kdyby ani jeden z testů nebyl pravdivýa else-větev chybí,
+pak je výsledná hodnota aplikace nedefinovaná:
+<code scheme>
+(cond ((= 1 2) 20)
+      ((even? 1) (+ 1 2)))</code>
+
+nedefinovaná hodnota
+
+Speciálním případem předchozího je cond bez argumentů:
+<code scheme>
+(cond)</code>
+
+nedefinovaná hodnota
+
+Nyní si ukážeme praktické použitíspeciální formy cond.
+Uvažujme funkci sgn (funkce signum), kteráse častou používá v matematice a kterou definujeme předpisem:
+
+ −1 pokud x < 0,
+ sgn x = 0 pokud x = 0,
+ 1 pokud x > 0.
+
+Výsledkem sgn x je tedy jedna z hodnot −1, 0 nebo 1 v závislosti na tom, zdali je danéčíslo x záporné, nula, nebo kladné. Definiční vztah bychom mohli přímočaře přepsat pomocíspeciální formy cond a vytvořit tak formalizaci funkce sgn:
+
+<code scheme>
+(define sgn
+  (lambda (x)
+    (cond ((= x 0) 0)
+	  ((> x 0) 1)
+	  (else -1))))</code>
+
+Jelikož se všechny podmínky v definici sgn vzájemně vylučují (vždy je právě jedna z nich pravdivá),
+nezáleží přitom na pořadí, v jakém byly jednotlivé podmínky a příslušné důsledky uvedeny.
+Výše uvedená procedura skutečně reprezentuje funkci signum (přesvědčte se sami).
+
+Speciální forma cond je v podstatě taky „nadbytečná“,
+protože bychom místo ní mohli opět použít sérii do sebe zanořených výrazů používajících speciální formu if.
+Konkrétně bychom mohli výraz ve tvaru
+<code scheme>
+(cond ( test2 důsledek1 )
+      ( test2 důsledek2 )
+      ...
+      ( testn důsledekn )
+      (else náhradník ))</code>
+
+nahradit výrazem
+<code scheme>
+(if test1
+  důsledek1
+  (if test2
+    důsledek2
+    (if · · ·
+      (if testn
+	důsledekn
+	náhradník ) · · · )))</code>
+
+Samozřejmě, že použití formy cond je mnohem přehlednější.
+Srovnejte naši výše uvedenou proceduru realizující funkci signum a následující proceduru,
+ve které je cond rozepsán pomocí if:
+<code scheme>
+(define sgn
+  (lambda (x)
+    (if (= x 0)
+      0
+      (if (> x 0)
+	1
+	-1))))</code>
+{{anchor:str71}}
+
+Nejen, že cond je vyjádřitelná pomocíspeciální formy if, ale lze tak učinit i obráceně,
+což je samozřejmě jednodušší – použijeme cond pouze s jednou podmínkou a případně s else-výrazem.
+V následujícím příklady máme proceduru pro výpočet absolutní hodnoty napsanou s použitím cond:
+<code scheme>
+(define abs
+  (lambda (x)
+    (cond ((>= x 0) x)
+	  (else (- x)))))</code>
+
+Dohromady tedy dostáváme, že if a cond jsou vzájemně plně zastupitelné.
+
+V následujícím příkladu si ukážeme použitícond při stanovenínejvětšího prvku ze tří.
+Půjde tedy o zobecnění procedury max z programu 2.
+0 tak, aby pracovala se třemi číselnými hodnotami.
+Samozřejmě, že úplně nejčistším řešením problému by bylo využití již zavedené procedury max takto:
+<code scheme>
+(define max3
+  (lambda (x y z)
+    (max x (max y z))))</code>
+
+Výše uvedená procedura skutečně vrací maximum ze tří prvků (rozmyslete si důkladně, proč).
+My ale v rámci procvičení práce s cond vyřešíme tento problém bez použití max.
+Mohli bychom to udělat takto:
+<code scheme>
+(define max3
+  (lambda (x y z)
+    (cond ((and (>= x y) (>= x z)) x)
+	  ((and (>= y x) (>= y z)) y)
+	  (else z))))</code>
+
+V těle předchozí procedury je pomocí podmíněných výrazů zachycen rozbor problému nalezení maxima ze tří prvků.
+V první podmínce je testováno, zdali je hodnota navázanána x většínež dvě další.
+Pokud je tomu tak, je tato hodnota největší.
+Na dalším řádku provedeme analogický test pro y.
+Na třetím řádku již můžeme s jistotou vrátit hodnotu navázanou na z,
+protože třetí řádek bude zpracován, pokud testy v předchozích dvou selžou,
+tedy právě když ani x ani y nejsou největší hodnoty, musí jí potom být z.
+Předchozí proceduru bychom ještě mohli následovně zjednodušit:
+<code scheme>
+(define max3
+  (lambda (x y z)
+    (cond ((and (>= x y) (>= x z)) x)
+	  ((>= y z) y)
+	  (else z))))</code>
+
+Zde jsme zeštíhlili druhou podmínku.
+Když první test nebude pravdivý, pak máme jistotu, že x nebude největší hodnotou, pak již stačí vzájemně porovnat jen hodnoty y a z.
+I když je nový kód kratší, pro někoho může být méně čitelný.
+Snad nejčitelnější (i když nejméně efektivníz hlediska počtu vyhodnocovaných výrazů) by byla procedura ve tvaru:
+
+<code scheme>
+(define max3
+  (lambda (x y z)
+    (cond ((and (>= x y) (>= x z)) x)
+	  ((and (>= y x) (>= y z)) y)
+	  ((and (>= z x) (>= z y)) z)
+	  (else sem-bychom-se-nemeli-dostat))))</code>
+
+Tato procedura mána svém konci uvedenu jakousi „pojistku“,
+která by se mohla uplatnit, kdyby někdo (třeba omylem) předefinoval globální vazbu symbolu >=
+třeba procedurou vzniklou vyhodnocením λ-výrazu (lambda (x y) #f).
+
+{{anchor:str72}}
+V každém případě bychom měli po naprogramování procedury se složi-tějšími podmíněnými výrazy prové st její důkladné otestování,
+abychom mohli okamžitě zjistit všechny případnéchyby (které jsme „zcela jistě nechtěli udělat“, ale všechno přece „bylo tak jasné“4).
+Například v případě procedury max3 bychom měli provést test se třemi vzájemně různými číselnými hodnotami
+a otestovat všechny jejich permutace, třeba:
+<code scheme>
+(max3 1 2 3)
+(max3 1 3 2)
+(max3 2 1 3)
+(max3 2 3 1)
+(max3 3 1 2)
+(max3 3 2 1)</code>
+
+======= Shrnutí =======
+
+V této lekci jsme položili základ problematice uživatelsky definovatelných procedur.
+Pomocí procedur lze účinně vytvářet abstrakce a v důsledku tak psát čistější, menší, univerzálnější
+a lépe spravovatelné programy.
+Uživatelsky definované procedury vznikají vyhodnocováním λ-výrazů,
+což jsou seznamy ve speciálním tvaru skládajícíse ze seznamu formálních argumentů a těla procedury.
+Kvůli aplikaci procedur jsme museli rozšířit dosud uvažovaný pojem prostředí.
+Prostředí už neuvažujeme pouze jedno, ale prostředıóbecně vznikají během výpočtu aplikací procedur.
+Každé prostředí je navíc vybaveno ukazatelem na svého předka, což je prostředí vzniku procedury.
+Tento přístup nám umožňuje hledat vazby symbolů v lexikálním smyslu.
+Dále jsme museli rozšířit model vyhodnocování.
+Vyhodnocení elementů chápeme relativně vzhledem k prostředí.
+Samotneúživatelské procedury jsou reprezentovány jako trojice: seznam formálních argumentů, tělo procedury, prostředí vzniku procedury.
+Při každé aplikaci procedury vznikánové lokální prostředí, jehož předek je nastaven na prostředí vzniku procedury.
+Ukázali jsme některé procedury s ustálenými názvy: identitu, projekce, konstantní procedury, procedury bez argumentů.
+Dále jsme se zabývali procedurami vyšších řádů, což jsou procedury, kterým jsou při aplikaci předávány jiné procedury jako argumenty nebo které vrací procedury jako výsledky své aplikace.
+Ukázali jsme princip rozkladu procedur dvou argumentů
+na proceduru jednoho argumentu vracející proceduru druhého argumentu.
+Dále jsme se zabývali vztahem procedur a zobrazení (matematických funkcí).
+Ukázali jsme, že za nějakých podmínek je možnéchápat procedury jako (přibližnou)
+reprezentaci matematických funkcí a ukázali jsme řadu operacís funkcemi,
+které jsem schopni provádět na úrovni procedur vyšších řádů (kompozici procedur a podobně).
+
+Dále jsme se zabývali dvěma základními typy rozsahu platnosti – lexikálním (statickým) a dynamickým,
+ukázali jsme výhody lexikálního rozsahu a řadu nevýhod dynamického rozsahu platnosti (kterýse prakticky nepoužívá).
+V závěru lekce jsme ukázali nové speciální formy pomocí kterých je možné vytvářet složitější podmínky
+a složitější podmíněně vyhodnocené výrazy.
+Ukázali jsme rovněž, že všechny nové speciální formy jsou „nadbytečné“,
+protože je lze vyjádřit pomocí již dříve představeného typu podmínek.
+
+======= Pojmy k zapamatování =======
+
+  * redundance kódu, uživatelsky definovatelné procedury,
+  * λ-výraz, formální argumenty, parametry, tělo, prázdnýseznam,
+  * vázané symboly, volné symboly, vazby symbolů,
+  * identita, projekce, konstantní procedura, procedura bez argumentu,
+  * lokální prostředí, globální prostředí, předek prostředí, aktuální prostředí,
+  * vyhodnocení elementu v prostředí,
+  * aplikace uživatelsky definované procedury,
+  * procedura vyššího řádu, currying, elementy prvního řádu,
+  * pojmenované procedury, anonymní procedury,
+
+4Podobná tvrzení jsou typickou ukázkou tak zvané „programátorské arogance“,
+což je obecně velmi nebezpečný projev samo-libosti dost často se vyskytující u programátorů,
+kteří jakoby zapomínají, že nesou odpovědnost za funkčnost svých výtvorů.
+
+{{anchor:str73}}
+
+  * kompozice procedur, monoidálnıóperace,
+  * nadřazené prostředí, lexikálně nadřazené prostředí, dynamicky nadřazené prostředí,
+  * lexikální (statický) rozsah platnosti, dynamický rozsah platnosti,
+  * konjunkce, disjunkce, negace.
+
+Nově představené prvky jazyka Scheme
+
+  * speciální formy lambda, and, or a cond,
+  * procedury abs, random, expt, not, min, max,
+  * predikáty even?, odd?
+
+======= Kontrolní otázky =======
+
+1. Co jsou to λ-výrazy a jak vypadají?
+
+2. Co vzniká vyhodnocením λ-výrazů?
+
+3. Jaké mají prostředí mezi sebou vazby?
+
+4. Jak vznikají prostředí?
+
+5. Jak se změní vyhodnocování, pokud jej uvažujeme vzhledem k prostředí?
+
+6. Co jsou a jak jsou reprezentovány uživatelsky definovatelné procedury?
+
+7. Jak probíhá aplikace uživatelsky definované procedury?
+
+8. Co jsou to procedury vyšších řádů?
+
+9. Jaký mají vztah procedury a matematické funkce?
+
+10. Co máme na mysli pod pojmem monoidálnıóperace?
+
+11. Co v jazyku Scheme považujeme za elementy prvního řádu?
+
+12. Jaký je rozdíl mezi lexikálním a dynamickým rozsahem platnosti?
+
+13. Jaké má výhody lexikální rozsah platnosti?
+
+14. Jaké mánevýhody dynamický rozsah platnosti?
+
+15. Jak by se dal upravit náš interpret tak, aby pracoval s dynamickým rozsahem platnosti?
+
+======= Cvičení 2 =======
+
+1. Napište, jak interpret Scheme vyhodnotínásledujícísymbolické výrazy:
+<code scheme>
+(lambda () x) ;⇒
+
+((lambda (x) (+ x)) 20) ;⇒
+
+(+ 1 ((lambda (x y) y) 20 30)) ;⇒
+
+((lambda () 30)) ;⇒
+
+(* 2 (lambda () 20)) ;⇒
+
+((lambda () (+ 1 2))) ;⇒
+
+(and (lambda () x) 20) ;⇒
+
+(and (or) (and)) ;⇒
+
+(if (and) 1 2) ;⇒
+
+(cond ((+ 1 2) 4)
+      (else 5)) ;⇒
+
+(and #f #f #f) ;⇒
+
+(and a #t b) ;⇒
+
+(not (and 10)) ;⇒
+
+(((lambda (x)
+    (lambda (y)
+      x))
+  10) 20) ;⇒
+
+((lambda (f)
+   (f 20)) -) ;⇒
+
+((lambda (f g) (f (g)))
+ + -) ;⇒
+
+((lambda (x y z) y) 1 2 3) ;⇒
+
+(or #f ahoj-svete #t) ;⇒
+
+(lambda () ((lambda ()))) ;⇒
+
+(* 2 ((lambda () 40) -100)) ;⇒</code>
+{{anchor:str74}}
+
+2. Naprogramujte predikáty positive? a negative?, které jsou pro danéčíslo pravdivé,
+právě když je číslo kladné respektive záporné.
+
+3. Napište proceduru, která má jako argument libovolný element vyjadřující zobecněnou pravdivostní hodnotu
+a vrací pravdivostní hodnotu (nezobecněnou) tohoto argumentu.
+
+4. Napište predikát implies dvou argumentů,
+který vrací pravdivostní hodnoty tvrzení „pravdivost prvního argumentu implikuje pravdivost druhého argumentu“.
+Úkolem je tedy napsat proceduru reprezentující pravdivostní funkci logické spojky implikace.
+
+(a) proceduru naprogramujte bez použití if a cond.
+
+(b) proceduru naprogramujte bez použití and, or a not.
+
+5. Napište predikát iff dvou argumentů, který vrací pravdivostní hodnotu tvrzení „první argument je pravdivý,
+právě když je druhý argument pravdivý“.
+Úkolem je tedy napsat proceduru reprezentující pravdivostní funkci logické spojky ekvivalence.
+
+(a) proceduru naprogramujte bez použití if a cond.
+
+(b) proceduru naprogramujte bez použití and a or.
+
+6. Naprogramujte proceduru sum3g, která bere jako argumenty tři čísla a vrací hodnotu součtu dvou větších čísel z těchto tří.
+
+(a) proceduru naprogramujte rozborem případů s použitím cond, (b) proceduru naprogramujte bez použití if a cond.
+
+7. Upravte proceduru z programu 2.5 na straně 60 tak, aby nepoužívala expt. Hodnotu počítanou pomocí expt stanovte za pomocí procedur log (logaritmus při základu e) a exp (exponenciální
+
+funkce při základu e).
+
+8. Obsah trojúhelníka lze snadno spočítat pokud známe velikosti všech jeho stran pomocí tak zvaného Heronova vzorce:
+
+a + b + c
+
+S∆ =
+
+s(s − a)(s − b)(s − c),
+
+kde
+
+s =
+
+.
+
+2
+
+Napište proceduru heron se třemi argumenty, jimiž budou délky stran trojúhelníka, která vrací jeho obsah. Napište proceduru tak, aby byla hodnota s počítána pouze jednou.
+
+9. Napište proceduru diskr na výpočet diskriminantu kvadratické rovnice. Dále napište procedury koren-1 a koren-2, které vracejí první a druhy
+
+́ kořen kvadratické rovnice.
+
+10. Procedury koren-1 a koren-2 vhodně zobecněte pomocí procedury vyššího řádu a ukažte jako lze pomocíní původní procedury získat.
+
+
+
+
+
+Úkoly k textu
+
+1. Uvažujme proceduru kdyz definovanou následujícím způsobem.
+
+(define kdyz
+
+(lambda (podminka vyraz alt)
+
+(if podminka vyraz alt)))
+
+Prostudujte proceduru a zjistěte, v čem se jejíchování lišıód chováníspeciální formy if. Bez použití interpretu určete, zdali bude možnénaprogramovat procedury abs, sgn a max3 z této lekce pouze pomocí kdyz bez pomocíspeciálních forem cond, if, and a or. Potom procedury naprogramujte a přesvědčte se, jestli byla vaše úvaha správná.
+
+75
+
+
+
+2. Dokažte pravdivost následujícího tvrzení.
+
+Pokud v daném λ-výrazu přejmenujeme všechny výskyty téhož vázaného symbolu jiným (ale pokaždé stejným) symbolem nevyskytujícím se v tomto λ-výrazu, pak se procedura vzniklá vyhodnocením tohoto λ-výrazu nezmění.
+
+Zdůvodněte, (i) proč předchozí tvrzenínení možné rozšířit i na volné symboly, (ii) proč vyžadujeme, aby se jméno nového symbolu v λ-výrazu dosud nevyskytovalo, (iii) proč je potřeba nahradit všechny výskyty vázaného symbolu (a ne pouze některé).
+
+3. Naprogramujte proceduru curry-max3, pomocíniž bude proveden currying procedury max3 pro hledání maxima ze tří prvků. U
+
+ć̌elem procedury curry-max3 tedy bude rozložit proceduru tří argumentů max3 na proceduru prvního argumentu vracející proceduru druhého argumentu vracející
+
+proceduru třetího argumentu. Svou implementaci důkladně otestujte.
+
+
+
+
+
+Řešení ke cvičením
+
+1. procedura, 20, 31, 30, chyba, 30, 20, #f, 1, 4, #f, chyba, #f, 10, -20, chyba, 2, chyba, chyba, chyba 2. (define positive? (lambda (a) (> a 0)))
+
+(define negative? (lambda (a) (< a 0)))
+
+3. (lambda (x) (not (not x)))
+
+4. (a): (define implies (lambda (a b) (or (not a) b)))
+
+(b): (define implies (lambda (a b) (if a b #t)))
+
+5. (a):
+
+(define iff
+
+(lambda (x y)
+
+(or (and x y)
+
+(and (not x) (not y)))))
+
+(b):
+
+(define iff
+
+(lambda (x y)
+
+(if x y (not y))))
+
+6. (a):
+
+(define sum3g
+
+(lambda (x y z)
+
+(cond ((and (<= x y) (<= x z)) (+ y z))
+
+((and (<= y x) (<= y z)) (+ x z))
+
+(else (+ x y)))))
+
+(b):
+
+(define sum3g
+
+(lambda (x y z)
+
+(- (+ x y z)
+
+(min x (min y z)))))
+
+7. (define make-polynomial-function
+
+(lambda (a n)
+
+(lambda (x) (* a (exp (* n (log x)))))))
+
+8. (define heron
+
+(lambda (a b c)
+
+((lambda (s)
+
+(sqrt (* s (- s a) (- s b) (- s c))))
+
+(/ (+ a b c) 2))))
+
+76
+
+
+
+9. (define diskr
+
+(lambda (a b c)
+
+(- (* b b) (* 4 a c))))
+
+(define koren-1
+
+(lambda (a b c)
+
+(/ (+ (- b) (sqrt (diskr a b c)))
+
+(* 2 a))))
+
+(define koren-2
+
+(lambda (a b c)
+
+(/ (- (- b) (sqrt (diskr a b c)))
+
+(* 2 a))))
+
+10. (define vrat-koren
+
+(lambda (op)
+
+(lambda (a b c)
+
+(/ (op (- b) (sqrt (diskr a b c)))
+
+(* 2 a)))))
+
+(define koren-1 (vrat-koren +))
+
+(define koren-2 (vrat-koren -))
+
+77
+
+
+

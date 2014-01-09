@@ -1,0 +1,159 @@
+KATEDRA INFORMATIKY
+
+PŘÍRODOVĚDECKÁ FAKULTA UNIVERZITA PALACKÉHO
+
+PARADIGMATA PROGRAMOVÁNÍ 1A
+
+JAN KONEČNÝ, VILÉM VYCHODIL
+
+VÝVOJ TOHOTO UČEBNÍHO TEXTU JE SPOLUFINANCOVÁN
+
+EVROPSKÝM SOCIÁLNÍM FONDEM A STÁTNÍM ROZPOČTEM ČESKÉ REPUBLIKY
+
+Olomouc 4. 10. 2010 (aktualizace)
+
+
+
+
+
+Abstrakt
+
+
+Série učebních textů z paradigmat programováníseznamuje čtenáře s vybranými styly v programování.
+
+Tento text je zaměřen na problematiku funkcionálního programování.
+Text je koncipován jako cvičebnice, teoretické partie jsou prezentovány v redukované podobě
+a důraz je kladen na prezentaci příkladů a pro-tipříkladů, na kterých jsou dané problémy demonstrovány.
+V textu se nacházejí klasické partie z funkcionálního programování
+(například procedury vyšších řádů, rekurze, indukce, práce s hierarchickými daty),
+ale i partie, které jsou v soudobé literatuře zastoupeny minimálně nebo vůbec (například detailní popis vyhodnocovacího procesu
+a konstrukce interpretu funkcionálního jazyka).
+Text je rozdělen do dvanácti na sebe navazujících lekcí.
+Pro správné pochopení a procvičení problematiky je vhodné číst lekce postupně bez přeskakování a snažit se řešit všechny úkoly.
+Text u čtenářů nepředpokládážádnéznalosti programování.
+
+Pro pochopení většiny příkladů stačí mít znalost středoškolské matematiky.
+Příklady vyžadujícíznalosti (úvodních kurzů) vysokoškolské matematiky jsou doplněny o odkazy na vhodnou literaturu.
+
+Jan Konečný, <jan.konecny@upol.cz>
+
+Vilém Vychodil, <vilem.vychodil@upol.cz>
+
+Cílová skupina
+
+Text je určen pro studenty oborů Aplikovaná informatika a Informatika uskutečňovaných v prezenční
+a kombinované formě na Přírodovědecké fakultě Univerzity Palackého v Olomouci.
+Může být užitečnýi studentům jiných informatických, matematických a inženýrských oborů a všem,
+kteří se chtějí seznámit s různými styly programování.
+
+
+
+
+
+Obsah
+
+
+1 Program, jeho syntax a sémantika . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+1.1 Programovací jazyk, program a výpočetní proces . . . . . . . . . . . . . . . . . . . . . . . . . .  7 
+1.2 Syntax a sémantika programů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  13
+1.3 Přehled paradigmat programování . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  16
+1.4 Symbolické výrazy a syntaxe jazyka Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . .  19
+1.5 Abstraktní interpret jazyka Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  21
+1.6 RozšířenıŚcheme o speciální formy a vytváření abstrakcí pojmenováním hodnot . . . . . . .  31
+1.7 Pravdivostní hodnoty a podmíněné výrazy . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  35
+2 Vytváření abstrakcí pomocí procedur . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  42
+2.1 Uživatelsky definovatelné procedury a λ-výrazy . . . . . . . . . . . . . . . . . . . . . . . . . .  42
+2.2 Vyhodnocování elementů v daném prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . . .  47
+2.3 Vznik a aplikace uživatelsky definovatelných procedur . . . . . . . . . . . . . . . . . . . . . .  50
+2.4 Procedury vyšších řádů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  52
+2.5 Procedury versus zobrazení . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  57
+2.6 Lexikální a dynamický rozsah platnosti . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  62
+2.7 Další podmíněné výrazy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  64
+
+3 Lokální vazby a definice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  78
+3.1 Vytváření lokálních vazeb . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  78
+3.2 Rozšíření λ-výrazů a lokální definice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  86
+3.3 Příklady na použití lokálních vazeb a interních definic . . . . . . . . . . . . . . . . . . . . . . .  89
+3.4 Abstrakční bariéry založenéna procedurách . . . . . . . . . . . . . . . . . . . . . . . . . . . .  92
+
+4 Tečkové páry, symbolická data a kvotování . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  97
+
+4.1 Vytváření abstrakcí pomocí dat . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  97 
+4.2 Tečkové páry . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  99 
+4.3 Abstrakční bariéry založenéna datech . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 103 
+4.4 Implementace tečkových párů pomocí procedur vyšších řádů . . . . . . . . . . . . . . . . . . 105 
+4.5 Symbolická data a kvotování . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107 
+4.6 Implementace racionální aritmetiky . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 109
+
+5 Seznamy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 115
+
+5.1 Definice seznamu a příklady . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 115
+5.2 Program jako data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 118
+5.3 Procedury pro manipulaci se seznamy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 121
+5.4 Datové typy v jazyku Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 126
+5.5 Implementace párů uchovávajících délku seznamu . . . . . . . . . . . . . . . . . . . . . . . . 129
+5.6 Správa paměti během činnosti interpretu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 131
+5.7 Odvozené procedury pro práci se seznamy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 132
+5.8 Zpracováníseznamů obsahujících dalšíseznamy . . . . . . . . . . . . . . . . . . . . . . . . . . 136
+6 Explicitní aplikace a vyhodnocování . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 142 
+6.1 Explicitní aplikace procedur . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 142 
+6.2 Použití explicitní aplikace procedur při práci se seznamy . . . . . . . . . . . . . . . . . . . . . 144 
+6.3 Procedury s nepovinnými a libovolnými argumenty . . . . . . . . . . . . . . . . . . . . . . . . 149 
+6.4 Vyhodnocování elementů a prostředí jako element prvního řádu . . . . . . . . . . . . . . . . . 152 
+6.5 Reprezentace množin a relací pomocíseznamů . . . . . . . . . . . . . . . . . . . . . . . . . . . 161
+
+
+
+7 Akumulace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 171
+
+7.1 Procedura FOLDR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 171 
+7.2 Použití FOLDR pro definici efektivních procedur . . . . . . . . . . . . . . . . . . . . . . . . . . 174 
+7.3 Další příklady akumulace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 179
+7.4 Procedura FOLDL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 182
+7.5 Další příklady na FOLDR a FOLDL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 185
+7.6 Výpočet faktoriálu a Fibonacciho čísel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 186
+
+8 Rekurze a indukce . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 191
+
+8.1 Definice rekurzí a princip indukce . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 191 
+8.2 Rekurze a indukce přes přirozenáčísla . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199 
+8.3 Výpočetní procesy generované rekurzivními procedurami . . . . . . . . . . . . . . . . . . . . 206 
+8.4 Jednorázové použití procedur . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 217 
+8.5 Rekurze a indukce na seznamech . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 220 
+8.6 Reprezentace polynomů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 228
+
+9 Hloubková rekurze na seznamech . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 241
+
+9.1 Metody zastavení rekurze . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 241
+9.2 Rekurzivní procedury definované pomocí y-kombinátoru . . . . . . . . . . . . . . . . . . . . . 243
+9.3 Lokální definice rekurzivních procedur . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 246
+9.4 Implementace vybraných rekurzivních procedur . . . . . . . . . . . . . . . . . . . . . . . . . . 248
+9.5 Hloubková rekurze na seznamech . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 250
+
+10 Kombinatorika na seznamech, reprezentace stromů a množin . . . . . . . . . . . . . . . . . . . . . 259
+10.1 Reprezentace n-árních stromů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 259 
+10.2 Reprezentace množin pomocí uspořádaných seznamů . . . . . . . . . . . . . . . . . . . . . . . 261
+10.3 Reprezentace množin pomocí binárních vyhledávacích stromů . . . . . . . . . . . . . . . . . . 264
+10.4 Kombinatorika na seznamech . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+
+11 Kvazikvotování a manipulace se symbolickými výrazy . . . . . . . . . . . . . . . . . . . . . . . . . 270
+
+11.1 Kvazikvotování . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 270
+11.2 Zjednodušování aritmetických výrazů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 272
+11.3 Symbolická derivace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 277
+11.4 Infixová, postfixová a bezzávorkovánotace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 279
+11.5 Vyhodnocování výrazů v postfixové a v bezzávorkovénotaci . . . . . . . . . . . . . . . . . . 282
+
+12 Čistě funkcionální interpret Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 290
+12.1 Automatické přetypování a generické procedury . . . . . . . . . . . . . . . . . . . . . . . . . . 290
+12.2 Systém manifestovaných typů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 293
+12.3 Datová reprezentace elementů jazyka Scheme . . . . . . . . . . . . . . . . . . . . . . . . . . . . 295
+12.4 Vstup a výstup interpretu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 301
+12.5 Implementace vyhodnocovacího procesu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 302
+12.6 Počáteční prostředí a cyklus REPL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 307
+12.7 Příklady použití interpretu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 313
+
+A Seznam vybraných programů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 329
+
+B Seznam obrázků . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 332

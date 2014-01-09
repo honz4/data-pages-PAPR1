@@ -1,0 +1,11 @@
+
+
+1. Uvažujme následující výraz:
+
+(if (if a
+(> a b)
+-666)
+(if b
+(- b)
+#t)
+10)

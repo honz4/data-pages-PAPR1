@@ -1,0 +1,285 @@
+
+
+
+A
+
+
+Seznam vybraných programů
+
+2.1 Výpočet délky přepony v pravoúhlém trojúhelníku . . . . . . . . . . . . . . . . . . . . . . . . .
+
+51
+
+2.2 Infixovaáplikace procedury dvou argumentů (procedura infix) . . . . . . . . . . . . . . . . .
+
+53
+
+2.3 Rozložení procedury na dvě procedury jednoho argumentu (procedura curry+) . . . . . . . .
+
+53
+
+2.4 Vytářenínových pocedur posunem a násobením . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+59
+
+2.5 Vytváření procedur reprezentujících polynomické funkce . . . . . . . . . . . . . . . . . . . . .
+
+60
+
+2.6 Kompozice dvou procedur (procedura compose2) . . . . . . . . . . . . . . . . . . . . . . . . .
+
+61
+
+2.7 Přibližnásměrnice tečny a přibližná derivace . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+62
+
+2.8 Procedura negace (procedura not) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+65
+
+2.9 Predikáty sudých a lichých čísel (procedury even? a odd?) . . . . . . . . . . . . . . . . . . . .
+
+65
+
+2.10 Minumum a maximum ze dvou prvků (procedury min a max) . . . . . . . . . . . . . . . . . . .
+
+69
+
+2.11 Hledání extrémních hodnot (procedura extrem) . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+69
+
+3.1 Procedura dostrel s lokálními vazbami vytvářenými s využitím and. . . . . . . . . . . . . . .
+
+87
+
+3.2 Procedura dostrel s lokálními vazbami vytvářenými pomocíspeciální formy define. . . . .
+
+88
+
+3.3 Procedura derivace s použitím interní definice. . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+91
+
+3.4 Procedura derivace s použitím speciální formy let. . . . . . . . . . . . . . . . . . . . . . . . .
+
+91
+
+4.1 Příklad abstrakční bariéry: výpočet kořenů kvadratické rovnice. . . . . . . . . . . . . . . . . . 104
+
+4.2 Implementace procedury koreny pomocí procedur vyšších řádů . . . . . . . . . . . . . . . . . 105
+
+4.3 Procedury cons, car a cdr (implementace tečkových párů pomocí procedur vyšších řádů) . . 107
+
+5.1 Obraceníseznamu pomocí build-list (procedura reverse) . . . . . . . . . . . . . . . . . . . 123
+
+5.2 Spojení dvou seznamů pomocí build-list (procedura append2) . . . . . . . . . . . . . . . . 124
+
+5.3 Mapování přes jeden seznam pomocí build-list (procedura map1) . . . . . . . . . . . . . . . 126
+
+6.1 Délka seznamu (procedura length) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 145
+
+6.2 Filtrace prvků seznam (procedura filter) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 147
+
+6.3 Procedury remove a member? . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 147
+
+6.4 Vrácení prvku na dané pozici (procedura list-ref) . . . . . . . . . . . . . . . . . . . . . . . . 147
+
+6.5 Vrácení pozic výskytu prvku (procedura list-indices) . . . . . . . . . . . . . . . . . . . . . 148
+
+6.6 Test přítomnosti prvku v seznamu s navrácením příznaku (procedura find) . . . . . . . . . . 150
+
+6.7 Součet druhých mocnin . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 151
+
+6.8 Konstruktor seznamu (procedura list) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 151
+
+7.1 Délka seznamu pomocí foldr (procedura length) . . . . . . . . . . . . . . . . . . . . . . . . . 174
+
+7.2 Spojení dvou seznamů pomocí foldr (procedura append2) . . . . . . . . . . . . . . . . . . . . 175
+
+7.3 Spojeníseznamů pomocí foldr (procedura append) . . . . . . . . . . . . . . . . . . . . . . . . 176
+
+7.4 Mapování přes jeden seznam pomocí foldr (procedura map1) . . . . . . . . . . . . . . . . . . 176
+
+7.5 Mapování přes libovolné seznamy pomocí foldr (procedura map) . . . . . . . . . . . . . . . . 177
+
+7.6 Filtrace prvků seznam pomocí foldr (procedura filter) . . . . . . . . . . . . . . . . . . . . . 178
+
+7.7 Test přítomnosti prvku v seznamu pomocí foldr (procedura member?) . . . . . . . . . . . . . 178
+
+7.8 Nahrazování prvků v seznamu pomocí foldr (procedura replace) . . . . . . . . . . . . . . . 178
+
+7.9 Procedury genuine-foldl a foldl pomocí foldr a reverze seznamu . . . . . . . . . . . . . . 183
+
+7.10 Složení libovolného množství procedur pomocí foldl (procedura compose) . . . . . . . . . . 184
+
+7.11 Procedury genuine-foldl a foldl pro libovolný počet seznamů . . . . . . . . . . . . . . . . 185
+
+7.12 Výpočet faktoriálu pomocí procedur vyšších řádů (procedura fac) . . . . . . . . . . . . . . . . 187
+
+7.13 Výpočet prvků Fibinacciho posloupnosti pomocí procedur vyšších řádů (procedura fib) . . . 187
+
+8.1 Rekurzivní procedura počítající xn (procedura expt) . . . . . . . . . . . . . . . . . . . . . . . . 200
+
+329
+
+
+
+8.2 Rychlá rekurzivní procedura počítající xn (procedura expt) . . . . . . . . . . . . . . . . . . . . 203
+
+8.3 Rekurzivní výpočet faktoriálu (procedura fac) . . . . . . . . . . . . . . . . . . . . . . . . . . . 206
+
+8.4 Rekurzivní výpočet prvků Fibonacciho posloupnosti (procedura fib) . . . . . . . . . . . . . . 206
+
+8.5 Iterativní faktoriál (procedura fac) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+
+8.6 Iterativní faktoriál s interní definicí (procedura fac) . . . . . . . . . . . . . . . . . . . . . . . . 212
+
+8.7 Iterativní verze expt . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 212
+
+8.8 Iterativní mocněnís pomocízásobníku (procedura expt) . . . . . . . . . . . . . . . . . . . . . 213
+
+8.9 Iterativní Fibonacciho čísla (procedura fib) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 217
+
+8.10 Iterativní Fibonacciho čísla s interní definicí (procedura fib) . . . . . . . . . . . . . . . . . . . 218
+
+8.11 Iterativní faktoriál používající pojmenovaný let (procedura fac) . . . . . . . . . . . . . . . . 220
+
+8.12 Iterativní Fibonacciho čísla používající pojmenovaný let (procedura fib) . . . . . . . . . . . 220
+
+8.13 Délka seznamu pomocí rekurze (procedura length) . . . . . . . . . . . . . . . . . . . . . . . . 221
+
+8.14 Délka seznamu pomocí iterace (procedura length) . . . . . . . . . . . . . . . . . . . . . . . . . 221
+
+8.15 Spojení dvou seznamů pomocí rekurze (procedura append2) . . . . . . . . . . . . . . . . . . . 222
+
+8.16 Vrácení prvku na dané pozici pomocí rekurze (procedura list-ref) . . . . . . . . . . . . . . 222
+
+8.17 Vráceníseznamu bez prvních prvků (procedura list-tail) . . . . . . . . . . . . . . . . . . . 223
+
+8.18 Mapování přes jeden seznam pomocí rekurze (procedura map1) . . . . . . . . . . . . . . . . . 223
+
+8.19 Rekurzivní verze vytvářeníseznamů (procedura build-list) . . . . . . . . . . . . . . . . . . 223
+
+8.20 Neefektivní verze vytvářeníseznamů (procedura build-list) . . . . . . . . . . . . . . . . . . 224
+
+8.21 Iterativní verze vytvářeníseznamů (procedura build-list) . . . . . . . . . . . . . . . . . . . 224
+
+8.22 Neefektivní reverze seznamu (procedura reverse) . . . . . . . . . . . . . . . . . . . . . . . . . 225
+
+8.23 Iterativní reverze seznamu (procedura reverse) . . . . . . . . . . . . . . . . . . . . . . . . . . 225
+
+9.1 Rekurzivní výpočet faktoriálu pomocí y-kombinátoru . . . . . . . . . . . . . . . . . . . . . . . 245
+
+9.2 Spojovaníseznamů append naprogramované rekurzivně . . . . . . . . . . . . . . . . . . . . . 249
+
+9.3 Spojovaníseznamů append naprogramované rekurzivně bez použití pomocné procedury . . 249
+
+9.4 Skládání funkcícompose bez použití procedury foldl . . . . . . . . . . . . . . . . . . . . . . . 250
+
+9.5 Implementace procedury hloubkového nahrazovaní atomů depth-replace . . . . . . . . . . 253
+
+10.1 Prohledávánístromu do hloubky . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 261
+
+10.2 Prohledávánístromu do šířky . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 261
+
+10.3 Výpočet potenční množiny . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+
+10.4 Efektivnější výpočet potenční množiny . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+
+10.5 Výpočet všech permutací prvků množiny . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 266
+
+10.6 Výpočet permutace prvků množiny pomocí faktoradických čísel . . . . . . . . . . . . . . . . . 268
+
+10.7 Výpočet všech kombinací prvků množiny . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 268
+
+10.8 Výpočet všech kombinacís opakováním . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 269
+
+11.1 Procedura pro zjednodušování aritmetických výrazů . . . . . . . . . . . . . . . . . . . . . . . . 273
+
+11.2 Interní definice v proceduře pro zjednodušování výrazů . . . . . . . . . . . . . . . . . . . . . . 274
+
+11.3 Tabulka procedur pro zjednodušování výrazů . . . . . . . . . . . . . . . . . . . . . . . . . . . . 274
+
+11.4 Procedura assoc pro vyhledávání v asociačním seznamu . . . . . . . . . . . . . . . . . . . . . 275
+
+11.5 Vylepšená procedura pro zjednodušování aritmetických výrazů . . . . . . . . . . . . . . . . . 276
+
+11.6 Procedura pro symbolickou derivaci . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 278
+
+11.7 Procedura prefix->postfix pro převod výrazů do postfixovénotace . . . . . . . . . . . . . 281
+
+11.8 Procedura prefix->polish pro převod výrazů do postfixové bezzávorkovénotace . . . . . . 281
+
+11.9 Procedura prefix->infix pro převod výrazů do infixovénotace . . . . . . . . . . . . . . . . 282
+
+330
+
+
+
+11.10 Procedura postfix-eval vyhodnocující postfixové výrazy . . . . . . . . . . . . . . . . . . . . 283
+
+11.11 Jednoduchá tabulka s prostředím vazeb pro postfixovýevaluátor . . . . . . . . . . . . . . . . . 284
+
+11.12 Procedura polish-eval vyhodnocující výrazy v polskénotaci . . . . . . . . . . . . . . . . . . 286
+
+12.1 Procedura match-type? (porovnávání datového typu se vzorem) . . . . . . . . . . . . . . . . 291
+
+12.2 Konkrétní tabulka metod generické procedury . . . . . . . . . . . . . . . . . . . . . . . . . . . 292
+
+12.3 Procedura table-lookup (vyhledání operace v tabulce metod generické procedury) . . . . . 292
+
+12.4 Procedura apply-generic (aplikace generické procedury) . . . . . . . . . . . . . . . . . . . . 292
+
+12.5 Generická procedura pro sčítání . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 293
+
+12.6 Procedury pro práci s manifestovanými typy . . . . . . . . . . . . . . . . . . . . . . . . . . . . 294
+
+12.7 Reprezentace tečkových párů . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 297
+
+12.8 Reprezentace prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 299
+
+12.9 Konstruktor pro globální prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 300
+
+12.10 Vyhledávání vazeb v prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 301
+
+12.11 Reprezentace uživatelsky definovaných procedur . . . . . . . . . . . . . . . . . . . . . . . . . . 301
+
+12.12 Převod do interní reprezentace a implementace readeru . . . . . . . . . . . . . . . . . . . . . . 302
+
+12.13 Převod do externí reprezentace Implementace printeru . . . . . . . . . . . . . . . . . . . . . . 303
+
+12.14 Reprezentace primitivních procedur . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 303
+
+12.15 Obecný konvertor seznamu na seznam ve vnitřní reprezentaci a zpět . . . . . . . . . . . . . . 304
+
+12.16 Konverze seznamů na metaseznamy o obráceně . . . . . . . . . . . . . . . . . . . . . . . . . . . 304
+
+12.17 Implementace vlastního vyhodnocovacího procesu . . . . . . . . . . . . . . . . . . . . . . . . . 305
+
+12.18 Tabulka vazeb mezi formálními/skutečnými argumenty (procedura make-bindings) . . . . 307
+
+12.19 Implementace aplikace procedur. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 307
+
+12.20 Definice speciální formy if v globálním prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . 308
+
+12.21 Definice speciální formy and v globálním prostředí . . . . . . . . . . . . . . . . . . . . . . . . . 309
+
+12.22 Definice forem lambda, the-environment a quote v globálním prostředí . . . . . . . . . . . . 310
+
+12.23 Definice selektorů uživatelsky definovaných procedur v globálním prostředí . . . . . . . . . . 310
+
+12.24 Procedura apply-collect-arguments (sestaveníseznamu argumentů pro apply) . . . . . . 310
+
+12.25 Definice eval, apply and env-apply v globálním prostředí . . . . . . . . . . . . . . . . . . . . 311
+
+12.26 Procedura length v prostředí odvozených definic . . . . . . . . . . . . . . . . . . . . . . . . . 312
+
+12.27 Procedura map v prostředí odvozených definic . . . . . . . . . . . . . . . . . . . . . . . . . . . . 313
+
+12.28 Procedura scm-repl (implementace cyklu REPL) . . . . . . . . . . . . . . . . . . . . . . . . . . 313
+
+331
+
+

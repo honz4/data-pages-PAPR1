@@ -1,0 +1,13 @@
+~~NOCACHE~~
+======= indexy, section=0 =======
+{{subjectindex>section=0;section=0}}
+======= indexy, section=1 =======
+{{subjectindex>Abstract section=1, tagy;section=1;default}}
+======= indexy, section=2 =======
+{{subjectindex>Abstract section=2;section=2;default}}
+
+======= Příklady, index section=5 =======
+{{subjectindex>section=5;default}}
+
+======= Definice, index section=9 =======
+{{subjectindex>section=9;default}}

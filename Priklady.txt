@@ -1,0 +1,3 @@
+======= Příklady, index section=5 =======
+{{subjectindex>section=5;default}}
+~~NOCACHE~~

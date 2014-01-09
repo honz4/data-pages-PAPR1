@@ -1,0 +1,19 @@
+======= imagerefences =======
+  * %%<imgcaption fig1.1|Obrazek 1.1>Obrazek 1.1, al misto nej text</imgcaption>%%
+  * %%<imgref fig1.1>%%
+  * %%<tabcaption tab1.1|Tabulka 1.1> ... tabulka </tabcaption>%%
+  * %%<tabref tab1.1>%%
+  * Obrázky/tabulky si to čísluje samo
+
+
+<imgcaption 1.1|Obrazek 1.1>{{Pictures:wsdl-model.jpg}}</imgcaption>
+  
+<tabcaption 1.1|Tabulka 1.1>
+^ble ^ ble ^
+|a   |b    |
+|   c|    d|
+</tabcaption>
+
+odkaz na <imgref 1.1> a <tabref 1.1>, druhý obrázek <imgref 1.2>
+
+<imgcaption 1.2|Obrazek 1.2>{{Pictures:wsdl20.png}}</imgcaption>

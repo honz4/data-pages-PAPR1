@@ -1,0 +1,3 @@
+======= indexy, section=0;default =======
+{{subjectindex>section=0;default;noAtoZ}}
+~~NOCACHE~~

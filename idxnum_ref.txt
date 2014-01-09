@@ -1,0 +1,17 @@
+======= pokusy idxnum, idxref =======
+<idxref Obrazek#1>
+<idxnum Pr #1 Priklad 1.1>Př 1.1</idxnum>
+<idxnum Pr #2 c1 2>Př 2</idxnum>
+<idxnum Df #1 c2 1>Df 1</idxnum>
+<idxnum Df #2 c2 2>Df 2</idxnum>
+<idxnum Df #3 c2 3>Df 3</idxnum>
+
+<idxnum Obrazek #1 WSDL 2.0>{{Pictures:wsdl20.png}}</idxnum>
+
+
+  * <idxref Pr1>
+  * <idxref Pr1>
+  * <idxref Df#1>
+  * <idxref Df2>
+  * <idxref Df3>
+<idxref Obrazek#1>

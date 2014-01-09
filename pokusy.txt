@@ -1,0 +1,46 @@
+~~ODT~~
+======title======
+======1. kap ======
+===== 1.1 kap =====
+======2. kap ======
+odstavec 2. kapitoly
+===== 2.1 kap =====
+odstavec kapitoly 2.1
+=====%hide hide kapitola =====
+%hide kapitola, ale použitelné pro include plugin, nefunguje?
+===== 2.2 kap =====
+
+======hidden======
+asd asd asdasd <hidden>asd adsa da ds dasd asd asd asd asd asd
+asd asd asd a
+  * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+    * asd asd asd asd asd asdfasasef dasdf
+    * asd asd asd asd asd asdfasasef dasdf
+sd asd asd asd asd asd asd asd asd asd</hidden>
+asd asd asd 
+
+<code scheme>((lambda () 10)</code>
+<hidden reseni> => 10</hidden>
+
+======folded======
+asd asdf asdf adfs ++plus plus|plus a plus a plus inline++
+
+folded s code musime takto:
+++++folded s code|<code scheme>((lambda (x) x) 10)</code>++++
+
+++++plus plus plus plus|asd asd asd asd
+asdf asdf asdf asdf
+  * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+    * asd asd asd asd asd asdfasasef dasdf
+    * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+  * asd asd asd asd asd asdfasasef dasdf
+asdf asf asdf asdf asdf 
+===== h2 uvnitr 4+ folded =====
+asd asd asd asd asd a
+
+konec 4plus ++++

@@ -1,0 +1,6 @@
+======= testujeme code =======
+PHP extenze geshi
+<code scheme>
+(define a 5555)
+(define b 5555)
+</code>

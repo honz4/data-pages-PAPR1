@@ -1,0 +1,127 @@
+
+B
+
+
+Seznam obrázků
+
+1.1 Výpočetní proces jako abstraktní entita . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+8
+
+1.2 Schéma cyklu REPL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+25
+
+1.3 Prostředí jako tabulka vazeb mezi symboly a elementy . . . . . . . . . . . . . . . . . . . . . . .
+
+26
+
+2.1 Prostředí a jejich hierarchie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+48
+
+2.2 Vznik prostředí během aplikace procedur z programu 2.1 . . . . . . . . . . . . . . . . . . . . .
+
+52
+
+2.3 Vznik prostředí během aplikace procedur z programu 2.3 . . . . . . . . . . . . . . . . . . . . .
+
+54
+
+2.4 Vznik prostředí během aplikace procedur z programu 2.3 . . . . . . . . . . . . . . . . . . . . .
+
+55
+
+2.5 Vyjádření funkcí pomocí posunu a násobení funkčních hodnot. . . . . . . . . . . . . . . . . . .
+
+59
+
+2.6 Různé polynomické funkce, skládání funkcí a derivace funkce. . . . . . . . . . . . . . . . . . .
+
+60
+
+3.1 Šikmý vrh ve vakuu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+79
+
+3.2 Vznik prostředí během vyhodnocení programu . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+82
+
+3.3 Vznik prostředí během vyhodnocení programu z příkladu 3.5 . . . . . . . . . . . . . . . . . .
+
+83
+
+3.4 Hierarchie prostředí . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+85
+
+4.1 Boxovánotace tečkového páru. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 101
+
+4.2 Tečkové páry z příkladu 4.8 v boxovénotaci . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 101
+
+4.3 Schéma abstrakčních bariér . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 104
+
+4.4 Vznik prostředí při aplikaci procedury z příkladu 4.2 . . . . . . . . . . . . . . . . . . . . . . . . 105
+
+4.5 Prostředí vznikající při použití vlastní implementace párů . . . . . . . . . . . . . . . . . . . . . 107
+
+4.6 Vrstvy v implementaci racionální aritmetiky . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 110
+
+4.7 Boxovánotace tečkových párů – zadání ke cvičení . . . . . . . . . . . . . . . . . . . . . . . . . 112
+
+5.1 Boxovánotace tečkového páru používající ukazatel . . . . . . . . . . . . . . . . . . . . . . . . . 118
+
+5.2 Seznamy z příkladu 5.4 v boxovénotaci . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 118
+
+5.3 Program (define 1+ (lambda (x) (+ x 1))) jako data. . . . . . . . . . . . . . . . . . . . . 119
+
+5.4 Procedury a prostředí u párů uchovávajících délku seznamu . . . . . . . . . . . . . . . . . . . 130
+
+8.1 Schématickézachycení úvahy o spojení dvou seznamů . . . . . . . . . . . . . . . . . . . . . . . 196
+
+8.2 Schématickézachycení aplikace procedury expt. . . . . . . . . . . . . . . . . . . . . . . . . . . 201
+
+8.3 Prostředí vzniklá během vyhodnocení (expt 8 4) . . . . . . . . . . . . . . . . . . . . . . . . . 202
+
+8.4 Schématickézachycení aplikace rychlé procedury expt. . . . . . . . . . . . . . . . . . . . . . . 204
+
+8.5 Schématickézachycení aplikace rekurzivní verze fac. . . . . . . . . . . . . . . . . . . . . . . . 207
+
+8.6 Schématickézachycení aplikace iterativní verze fac. . . . . . . . . . . . . . . . . . . . . . . . . 208
+
+8.7 Schématickézachycení iterativní verze procedury expt. . . . . . . . . . . . . . . . . . . . . . . 213
+
+8.8 Schématickézachycení aplikace expt vytvořené s využitím zásobníku. . . . . . . . . . . . . . 214
+
+8.9 Schématickézachycení aplikace rekurzivní verze fib. . . . . . . . . . . . . . . . . . . . . . . . 215
+
+8.10 Postupné provádění aplikací při použití rekurzivní verze fib. . . . . . . . . . . . . . . . . . . 215
+
+8.11 Schématickézachycení aplikace iterativní verze fib. . . . . . . . . . . . . . . . . . . . . . . . . 217
+
+8.12 Schématickézachycení aplikace iterativní verze length. . . . . . . . . . . . . . . . . . . . . . . 222
+
+10.1 Příklad n-árního stromu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 259
+
+10.2 Ukázka průchodu do šířky a do hloubky . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 260
+
+10.3 Výsledek aplikace stare a vylepšené verze power-set . . . . . . . . . . . . . . . . . . . . . . . 266
+
+10.4 Faktoradickáčísla a permutace . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 267
+
+11.1 Struktura výrazu (+ (* 2 x) (- (/ (+ x 2) z)) 5) . . . . . . . . . . . . . . . . . . . . . . 280
+
+11.2 Fyzickástruktura seznamu (+ (* 2 x) (- (/ (+ x 2) z)) 5) . . . . . . . . . . . . . . . . 280
+
+12.1 Fyzická reprezentace páru (10 . ahoj) pomocí metaelementů . . . . . . . . . . . . . . . . . 298
+
+12.2 Fyzická reprezentace seznamu (lambda (x) (+ x 1)) pomocí metaelementů . . . . . . . . 298
+
+332
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+použijeme include plugin
+{{section>L1#Cviceni_1&title&linkonly}}
+{{section>L2#Cviceni_2&title&linkonly}}
+{{section>L3#Cviceni_3}}
+{{section>L4#Cviceni_4}}
+{{section>L5#Cviceni_5&title}}
+{{section>L11#Cviceni_11&title}}
+{{section>L12#Cviceni_12&title}}
